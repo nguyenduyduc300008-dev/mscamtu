@@ -1,0 +1,20 @@
+{
+  "name": "nguoi-di-qua-mua-nho",
+  "version": "1.0.0",
+  "description": "A rainy-night 3D interactive story about finding love after heartbreak.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "@fontsource/be-vietnam-pro": "^5.3.0",
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "vite": "^8.3.5"
+  }
+}
