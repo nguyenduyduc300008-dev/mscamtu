@@ -672,7 +672,7 @@ function createCampusImageBoard() {
 
   const textureLoader = new THREE.TextureLoader();
   textureLoader.load(
-    "/assets/haui-campus.jpg",
+    `${import.meta.env.BASE_URL}assets/haui-campus.jpg`,
     (texture) => {
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
