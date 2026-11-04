@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="description" content="Ms. Cẩm Tú — giáo viên tiếng Anh với 10 năm kinh nghiệm luyện thi TOEIC. Cùng bạn xây lộ trình học phù hợp và tự tin chinh phục mục tiêu.">
+    <title>Ms. Cẩm Tú — Luyện thi TOEIC cùng cô</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #172a50;
+        --muted: #64728a;
+        --blue: #0866f5;
+        --blue-dark: #0649b8;
+        --pale: #eff7ff;
+        --line: #e7edf5;
+        --page-width: 1160px;
+        font-family: "Segoe UI", Arial, sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      html { scroll-behavior: smooth; }
+
+      #trang-chu, #ve-co, #khoa-hoc, #lo-trinh, #dang-ky { scroll-margin-top: 88px; }
+
+      body {
+        min-width: 320px;
+        margin: 0;
+        color: var(--ink);
+        background: #fff;
+        font-size: 15px;
+        line-height: 1.65;
+      }
+
+      a { color: inherit; text-decoration: none; }
+      button, input, select { font: inherit; }
+      button, a { -webkit-tap-highlight-color: transparent; }
+
+      .container {
+        width: min(var(--page-width), calc(100% - 64px));
+        margin-inline: auto;
+      }
+
+      .site-header {
+        position: sticky;
+        z-index: 10;
+        top: 0;
+        border-bottom: 1px solid rgba(231, 237, 245, .85);
+        background: rgba(255, 255, 255, .94);
+        backdrop-filter: blur(14px);
+      }
+
+      .header-inner {
+        display: flex;
+        min-height: 104px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 28px;
+      }
+
+      .brand {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        line-height: 0;
+      }
+
+      .brand img {
+        display: block;
+        width: 150px;
+        height: 100px;
+        object-fit: contain;
+      }
+
+      .main-nav {
+        display: flex;
+        align-items: center;
+        gap: clamp(18px, 3vw, 36px);
+        color: #465671;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .main-nav a { transition: color .18s ease; }
+      .main-nav a:hover, .main-nav a:focus-visible { color: var(--blue); }
+
+      .button {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        padding: 0 22px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        color: #fff;
+        background: var(--blue);
+        box-shadow: 0 8px 18px rgba(8, 102, 245, .16);
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        transition: background .2s ease, box-shadow .2s ease, transform .2s ease;
+      }
+
+      .button:hover {
+        transform: translateY(-2px);
+        background: var(--blue-dark);
+        box-shadow: 0 11px 22px rgba(8, 102, 245, .23);
+      }
+
+      .button-outline {
+        border-color: #cbd9ed;
+        color: var(--ink);
+        background: #fff;
+        box-shadow: none;
+      }
+
+      .button-outline:hover { color: #fff; }
+      .header-cta { min-height: 42px; padding-inline: 19px; font-size: 12px; }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 36px 0 54px;
+      }
+
+      .hero::before {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 54%;
+        height: 100%;
+        border-radius: 0 0 0 38%;
+        background: linear-gradient(145deg, #f3f9ff, #e5f2ff);
+        content: "";
+      }
+
+      .hero-grid {
+        position: relative;
+        display: grid;
+        min-height: 555px;
+        align-items: center;
+        grid-template-columns: 1.05fr .95fr;
+        gap: 42px;
+      }
+
+      .hero-copy { padding: 30px 0 40px; }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 19px;
+        color: var(--blue);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .13em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #48a0ff;
+        box-shadow: 0 0 0 4px #e6f2ff;
+      }
+
+      h1, h2, h3, p { margin-top: 0; }
+
+      h1 {
+        max-width: 610px;
+        margin-bottom: 20px;
+        font-size: clamp(43px, 5.2vw, 68px);
+        font-weight: 800;
+        letter-spacing: -.055em;
+        line-height: 1.09;
+      }
+
+      h1 span { color: var(--blue); }
+
+      .hero-intro {
+        max-width: 510px;
+        margin-bottom: 24px;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.85;
+      }
+
+      .hero-intro strong { color: #344a70; }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .quick-facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 26px;
+        margin-top: 36px;
+      }
+
+      .fact {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .fact-icon {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border: 1px solid #e4efff;
+        border-radius: 13px;
+        color: var(--blue);
+        background: #f4f9ff;
+        font-size: 17px;
+      }
+
+      .fact strong, .fact span { display: block; }
+      .fact strong { font-size: 13px; line-height: 1.4; }
+      .fact span { color: #7a879c; font-size: 11px; }
+
+      .portrait-wrap {
+        position: relative;
+        display: flex;
+        min-height: 500px;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .portrait-backdrop {
+        position: absolute;
+        width: min(390px, 84%);
+        height: 430px;
+        border-radius: 48% 48% 34px 34px;
+        background: linear-gradient(155deg, #b9ddff, #dceeff 65%, #f6faff);
+      }
+
+      .portrait {
+        position: relative;
+        z-index: 1;
+        width: min(330px, 76%);
+        height: 440px;
+        overflow: hidden;
+        border: 8px solid rgba(255,255,255,.82);
+        border-radius: 48% 48% 30px 30px;
+        background: #dceeff;
+        box-shadow: 0 25px 55px rgba(39, 93, 154, .16);
+      }
+
+      .portrait img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center 45%;
+      }
+
+      .portrait-note {
+        position: absolute;
+        z-index: 2;
+        right: 0;
+        bottom: 60px;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 13px 17px;
+        border: 1px solid #edf2f8;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 12px 35px rgba(36, 63, 101, .12);
+      }
+
+      .note-check {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        border-radius: 11px;
+        color: #1471ed;
+        background: #eaf4ff;
+        font-weight: 800;
+      }
+
+      .portrait-note strong { display: block; font-size: 12px; }
+      .portrait-note span { display: block; color: #7b879a; font-size: 10px; }
+
+      .section { padding: 88px 0; }
+      .section-soft { background: #f7faff; }
+
+      .section-heading {
+        max-width: 660px;
+        margin: 0 auto 42px;
+        text-align: center;
+      }
+
+      .section-heading .eyebrow { margin-bottom: 12px; }
+
+      h2 {
+        margin-bottom: 13px;
+        font-size: clamp(30px, 3.8vw, 43px);
+        font-weight: 800;
+        letter-spacing: -.045em;
+        line-height: 1.18;
+      }
+
+      .section-heading > p:last-child {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .benefit-grid, .course-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+      }
+
+      .benefit-card, .course-card {
+        padding: 25px;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: #fff;
+        transition: transform .2s ease, box-shadow .2s ease;
+      }
+
+      .benefit-card:hover, .course-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 15px 35px rgba(25, 61, 110, .08);
+      }
+
+      .card-icon {
+        display: grid;
+        width: 46px;
+        height: 46px;
+        margin-bottom: 18px;
+        place-items: center;
+        border-radius: 15px;
+        color: var(--blue);
+        background: #edf6ff;
+        font-size: 20px;
+      }
+
+      .benefit-card h3, .course-card h3 {
+        margin-bottom: 8px;
+        font-size: 17px;
+        letter-spacing: -.02em;
+      }
+
+      .benefit-card p, .course-card p {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.75;
+      }
+
+      .course-card {
+        display: flex;
+        min-height: 270px;
+        flex-direction: column;
+      }
+
+      .course-label {
+        display: inline-flex;
+        align-self: flex-start;
+        margin-bottom: 15px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        color: #1768d7;
+        background: #edf6ff;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+      }
+
+      .course-card p { margin-bottom: 22px; }
+
+      .text-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-top: auto;
+        color: var(--blue);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .text-link:hover { color: var(--blue-dark); }
+
+      .process-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 28px;
+      }
+
+      .process-item {
+        position: relative;
+        padding: 0 14px;
+        text-align: center;
+      }
+
+      .process-number {
+        display: grid;
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 16px;
+        place-items: center;
+        border: 1px solid #d5e8ff;
+        border-radius: 16px;
+        color: var(--blue);
+        background: #f3f9ff;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .process-item h3 { margin-bottom: 7px; font-size: 15px; }
+      .process-item p { margin-bottom: 0; color: var(--muted); font-size: 12px; }
+
+      .contact-section { padding: 78px 0 90px; }
+
+      .contact-card {
+        display: grid;
+        overflow: hidden;
+        grid-template-columns: .9fr 1.1fr;
+        border: 1px solid #e8eff7;
+        border-radius: 26px;
+        background: #f5f9ff;
+      }
+
+      .contact-copy {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 42px;
+      }
+
+      .contact-copy .eyebrow { margin-bottom: 14px; }
+      .contact-copy h2 { font-size: clamp(29px, 3.4vw, 39px); }
+      .contact-copy > p { margin-bottom: 23px; color: var(--muted); font-size: 13px; }
+
+      .contact-points {
+        display: grid;
+        gap: 10px;
+        color: #4a5d7c;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .contact-points span::before {
+        margin-right: 9px;
+        color: var(--blue);
+        content: "✓";
+        font-weight: 800;
+      }
+
+      .contact-form {
+        display: grid;
+        align-content: center;
+        gap: 13px;
+        padding: 38px;
+        background: #fff;
+      }
+
+      .field-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .field { display: grid; gap: 6px; }
+      .field label { color: #465875; font-size: 11px; font-weight: 700; }
+
+      .field input, .field select {
+        width: 100%;
+        min-height: 44px;
+        padding: 0 12px;
+        border: 1px solid #dfe7f1;
+        border-radius: 10px;
+        outline: none;
+        color: var(--ink);
+        background: #fff;
+        font-size: 12px;
+      }
+
+      .field input:focus, .field select:focus {
+        border-color: #7db4ff;
+        box-shadow: 0 0 0 3px #edf6ff;
+      }
+
+      .contact-form .button { width: 100%; margin-top: 3px; border: 0; }
+
+      .form-message {
+        min-height: 18px;
+        margin: 0;
+        color: #26734d;
+        font-size: 11px;
+      }
+
+      .form-note {
+        margin: 0;
+        color: #8490a2;
+        font-size: 10px;
+        text-align: center;
+      }
+
+      .site-footer {
+        padding: 23px 0;
+        border-top: 1px solid var(--line);
+        color: #7a879a;
+        font-size: 11px;
+      }
+
+      .footer-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .footer-brand { color: var(--ink); font-weight: 800; }
+
+      @media (max-width: 900px) {
+        .container { width: min(var(--page-width), calc(100% - 44px)); }
+        .main-nav { gap: 17px; font-size: 12px; }
+        .hero-grid { min-height: 500px; gap: 20px; }
+        .portrait-wrap { min-height: 450px; }
+        .portrait { height: 390px; }
+        .portrait-backdrop { height: 380px; }
+        .portrait-note { right: -5px; bottom: 42px; }
+        .section { padding: 72px 0; }
+        .contact-copy, .contact-form { padding: 30px; }
+      }
+
+      @media (max-width: 700px) {
+        .container { width: calc(100% - 36px); }
+        .header-inner { min-height: 86px; gap: 12px; }
+        .main-nav { display: none; }
+        .brand img { width: 112px; height: 75px; }
+        .header-cta { min-height: 39px; padding-inline: 15px; font-size: 11px; }
+        .hero { padding: 17px 0 38px; }
+        .hero::before { top: auto; bottom: 0; width: 100%; height: 43%; border-radius: 32% 0 0; }
+        .hero-grid { min-height: 0; grid-template-columns: 1fr; gap: 4px; }
+        .hero-copy { padding: 35px 0 0; }
+        .eyebrow { margin-bottom: 14px; font-size: 10px; }
+        h1 { max-width: 550px; margin-bottom: 15px; font-size: clamp(41px, 10.5vw, 58px); }
+        .hero-intro { max-width: 540px; margin-bottom: 19px; font-size: 14px; }
+        .button { min-height: 46px; padding-inline: 18px; font-size: 12px; }
+        .quick-facts { gap: 16px; margin-top: 25px; }
+        .fact { gap: 8px; }
+        .fact-icon { width: 34px; height: 34px; }
+        .fact strong { font-size: 11px; }
+        .fact span { font-size: 10px; }
+        .portrait-wrap { min-height: 385px; margin-top: 0; }
+        .portrait-backdrop { width: 70%; height: 330px; }
+        .portrait { width: min(260px, 68%); height: 345px; border-width: 6px; }
+        .portrait-note { right: 4px; bottom: 28px; padding: 10px 12px; }
+        .section { padding: 62px 0; }
+        .section-heading { margin-bottom: 29px; }
+        h2 { font-size: 32px; }
+        .benefit-grid, .course-grid { grid-template-columns: 1fr; gap: 12px; }
+        .benefit-card { padding: 21px; }
+        .course-card { min-height: 0; padding: 22px; }
+        .process-grid { grid-template-columns: 1fr; gap: 24px; }
+        .process-item { padding: 0 20px; }
+        .contact-section { padding: 58px 0 66px; }
+        .contact-card { grid-template-columns: 1fr; border-radius: 20px; }
+        .contact-copy { padding: 28px 23px 16px; }
+        .contact-copy h2 { font-size: 32px; }
+        .contact-form { padding: 12px 23px 26px; }
+        .field-row { grid-template-columns: 1fr; }
+        .footer-inner { flex-direction: column; align-items: flex-start; gap: 4px; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          scroll-behavior: auto !important;
+          animation-duration: .01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: .01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="#trang-chu" aria-label="Trung tâm dạy Tiếng Anh Ms. Cẩm Tú - về đầu trang">
+          <img src="assets/ms-cam-tu-logo.png" alt="Trung tâm dạy Tiếng Anh Ms. Cẩm Tú">
+        </a>
+        <nav class="main-nav" aria-label="Điều hướng chính">
+          <a href="#ve-co">Về cô Tú</a>
+          <a href="#lo-trinh">Lộ trình học</a>
+          <a href="#khoa-hoc">Khóa học</a>
+          <a href="#dang-ky">Liên hệ</a>
+        </nav>
+        <a class="button header-cta" href="#dang-ky">Tư vấn lộ trình <span aria-hidden="true">→</span></a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" id="trang-chu" aria-labelledby="hero-title">
+        <div class="container hero-grid">
+          <div class="hero-copy" id="ve-co">
+            <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Giáo viên tiếng Anh · Luyện thi TOEIC</p>
+            <h1 id="hero-title">Chinh phục TOEIC<br>cùng <span>cô Cẩm Tú.</span></h1>
+            <p class="hero-intro">
+              Cô <strong>Ms. Cẩm Tú</strong> có <strong>10 năm kinh nghiệm giảng dạy và luyện thi TOEIC</strong>.
+              Cùng bạn củng cố nền tảng, học đúng trọng tâm và xây dựng lộ trình phù hợp với mục tiêu riêng.
+            </p>
+            <div class="hero-actions">
+              <a class="button" href="#dang-ky">Nhận tư vấn miễn phí <span aria-hidden="true">→</span></a>
+              <a class="button button-outline" href="#khoa-hoc">Khám phá khóa học</a>
+            </div>
+            <div class="quick-facts" aria-label="Thông tin về cô Cẩm Tú">
+              <div class="fact">
+                <span class="fact-icon" aria-hidden="true">◷</span>
+                <span><strong>10 năm</strong><span>Kinh nghiệm giảng dạy</span></span>
+              </div>
+              <div class="fact">
+                <span class="fact-icon" aria-hidden="true">◎</span>
+                <span><strong>Cá nhân hóa</strong><span>Lộ trình theo mục tiêu</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="portrait-wrap" aria-label="Ảnh cô giáo Cẩm Tú">
+            <div class="portrait-backdrop" aria-hidden="true"></div>
+            <div class="portrait">
+              <img src="assets/ms-cam-tu.png" alt="Cô Cẩm Tú bên gia đình" fetchpriority="high">
+            </div>
+            <div class="portrait-note">
+              <span class="note-check" aria-hidden="true">✓</span>
+              <span><strong>Học chắc từng bước</strong><span>Đồng hành cùng bạn đến mục tiêu</span></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="method-title">
+        <div class="container">
+          <div class="section-heading">
+            <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Học đúng cách</p>
+            <h2 id="method-title">Tiến bộ vững vàng, bắt đầu từ nền tảng</h2>
+            <p>Phương pháp học rõ ràng, thực tế và được điều chỉnh theo trình độ của từng học viên.</p>
+          </div>
+          <div class="benefit-grid">
+            <article class="benefit-card">
+              <span class="card-icon" aria-hidden="true">⌕</span>
+              <h3>Kiểm tra đầu vào</h3>
+              <p>Nhìn rõ điểm mạnh, phần cần cải thiện và khoảng cách tới mục tiêu TOEIC của bạn.</p>
+            </article>
+            <article class="benefit-card">
+              <span class="card-icon" aria-hidden="true">▤</span>
+              <h3>Lộ trình phù hợp</h3>
+              <p>Chia nhỏ mục tiêu thành các chặng học cụ thể, tập trung vào kỹ năng bạn cần nhất.</p>
+            </article>
+            <article class="benefit-card">
+              <span class="card-icon" aria-hidden="true">↗</span>
+              <h3>Luyện tập có định hướng</h3>
+              <p>Rèn chiến thuật làm bài, mở rộng vốn từ và theo dõi tiến độ qua từng giai đoạn.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-soft" id="khoa-hoc" aria-labelledby="courses-title">
+        <div class="container">
+          <div class="section-heading">
+            <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Chương trình học</p>
+            <h2 id="courses-title">Chọn khóa học theo mục tiêu của bạn</h2>
+            <p>Từ củng cố căn bản đến luyện đề chuyên sâu — trao đổi với cô để chọn lộ trình phù hợp.</p>
+          </div>
+          <div class="course-grid">
+            <article class="course-card">
+              <span class="course-label">Xây nền tảng</span>
+              <h3>TOEIC cho người mới bắt đầu</h3>
+              <p>Ôn ngữ pháp và từ vựng cốt lõi, làm quen cấu trúc đề và xây nền nghe đọc vững chắc.</p>
+              <a class="text-link" href="#dang-ky">Tìm hiểu lộ trình <span aria-hidden="true">→</span></a>
+            </article>
+            <article class="course-card">
+              <span class="course-label">Luyện thi mục tiêu</span>
+              <h3>TOEIC Listening &amp; Reading</h3>
+              <p>Hệ thống dạng bài, luyện kỹ năng nghe đọc và thực hành chiến thuật làm bài hiệu quả.</p>
+              <a class="text-link" href="#dang-ky">Tìm hiểu lộ trình <span aria-hidden="true">→</span></a>
+            </article>
+            <article class="course-card">
+              <span class="course-label">Phát triển toàn diện</span>
+              <h3>TOEIC Speaking &amp; Writing</h3>
+              <p>Rèn phản xạ nói, cách phát triển ý và kỹ năng viết theo yêu cầu của bài thi TOEIC.</p>
+              <a class="text-link" href="#dang-ky">Tìm hiểu lộ trình <span aria-hidden="true">→</span></a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="lo-trinh" aria-labelledby="process-title">
+        <div class="container">
+          <div class="section-heading">
+            <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Bắt đầu thật dễ</p>
+            <h2 id="process-title">Ba bước để bắt đầu</h2>
+            <p>Cùng cô tìm đúng điểm xuất phát trước khi bước vào hành trình luyện thi.</p>
+          </div>
+          <div class="process-grid">
+            <article class="process-item">
+              <span class="process-number">01</span>
+              <h3>Chia sẻ mục tiêu</h3>
+              <p>Cho cô biết trình độ hiện tại, thời gian học và mục tiêu bạn hướng tới.</p>
+            </article>
+            <article class="process-item">
+              <span class="process-number">02</span>
+              <h3>Trao đổi lộ trình</h3>
+              <p>Cùng xem xét nhu cầu và lựa chọn hướng học phù hợp với bạn.</p>
+            </article>
+            <article class="process-item">
+              <span class="process-number">03</span>
+              <h3>Bắt đầu luyện tập</h3>
+              <p>Học theo từng chặng, luyện đều đặn và điều chỉnh khi cần thiết.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="contact-section section-soft" id="dang-ky" aria-labelledby="contact-title">
+        <div class="container">
+          <div class="contact-card">
+            <div class="contact-copy">
+              <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Kết nối với cô Tú</p>
+              <h2 id="contact-title">Sẵn sàng cho mục tiêu TOEIC tiếp theo?</h2>
+              <p>Để lại thông tin và mục tiêu của bạn để bắt đầu cuộc trò chuyện về lộ trình học.</p>
+              <div class="contact-points">
+                <span>Tư vấn theo trình độ hiện tại</span>
+                <span>Lựa chọn lớp học phù hợp</span>
+                <span>Giải đáp thắc mắc về kỳ thi</span>
+              </div>
+            </div>
+            <form class="contact-form" id="consult-form">
+              <div class="field-row">
+                <div class="field">
+                  <label for="student-name">Họ và tên</label>
+                  <input id="student-name" name="name" type="text" placeholder="Tên của bạn" autocomplete="name" required>
+                </div>
+                <div class="field">
+                  <label for="student-phone">Số điện thoại</label>
+                  <input id="student-phone" name="phone" type="tel" placeholder="Số điện thoại liên hệ" autocomplete="tel" required>
+                </div>
+              </div>
+              <div class="field">
+                <label for="student-goal">Mục tiêu TOEIC của bạn</label>
+                <select id="student-goal" name="goal" required>
+                  <option value="" selected disabled>Chọn mục tiêu</option>
+                  <option value="foundation">Củng cố nền tảng</option>
+                  <option value="listening-reading">TOEIC Listening &amp; Reading</option>
+                  <option value="speaking-writing">TOEIC Speaking &amp; Writing</option>
+                  <option value="unsure">Cần tư vấn thêm</option>
+                </select>
+              </div>
+              <button class="button" type="submit">Gửi yêu cầu tư vấn <span aria-hidden="true">→</span></button>
+              <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
+              <p class="form-note">Biểu mẫu giới thiệu giao diện — hiện chưa kết nối hệ thống gửi thông tin.</p>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <span class="footer-brand">MS. CẨM TÚ · TOEIC &amp; ENGLISH</span>
+        <span>Học vững nền tảng · Tự tin chinh phục mục tiêu</span>
+      </div>
+    </footer>
+
+    <script>
+      const consultForm = document.querySelector("#consult-form");
+      const formMessage = document.querySelector("#form-message");
+
+      consultForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        formMessage.textContent = "Biểu mẫu đã được kiểm tra. Vui lòng liên hệ cô Tú trực tiếp để gửi thông tin tư vấn.";
+      });
+    </script>
+  </body>
+</html>
