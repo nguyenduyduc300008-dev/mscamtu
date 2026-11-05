@@ -553,6 +553,14 @@ function openConnectionDialog() {
   void refreshProviderKeyStatuses();
 }
 
+function providerKeyErrorMessage(error, fallback) {
+  const status = error?.context?.status;
+  if (status === 401 || status === 403) {
+    return "Phiên đăng nhập không còn hợp lệ. Hãy đăng xuất rồi đăng nhập lại.";
+  }
+  return fallback;
+}
+
 function renderProviderKeyStatuses() {
   for (const provider of ["gemini", "openai"]) {
     const status = document.querySelector(`#${provider}-api-status`);
@@ -573,7 +581,10 @@ async function refreshProviderKeyStatuses() {
   });
   if (error || !data || !Array.isArray(data.providers)) {
     console.error("Không thể kiểm tra trạng thái API key:", error || "Invalid status response.");
-    message.textContent = "Chưa kiểm tra được. Hãy triển khai Edge Function và cấu hình secret mã hóa trong Supabase.";
+    message.textContent = providerKeyErrorMessage(
+      error,
+      "Chưa kiểm tra được. Hãy kiểm tra Edge Function và cấu hình secret mã hóa trong Supabase."
+    );
     return;
   }
   providerKeyStatuses = {
@@ -605,7 +616,10 @@ async function saveProviderKey(event) {
     });
     input.value = "";
     if (error || data?.error) {
-      message.textContent = data?.error || "Không thể kết nối. Kiểm tra Edge Function và secret mã hóa trong Supabase.";
+      message.textContent = data?.error || providerKeyErrorMessage(
+        error,
+        "Không thể kết nối. Kiểm tra Edge Function và secret mã hóa trong Supabase."
+      );
       return;
     }
     form.reset();
@@ -632,7 +646,10 @@ async function removeProviderKey(provider) {
       body: { action: "remove", provider }
     });
     if (error || data?.error) {
-      message.textContent = data?.error || "Không thể xóa key. Hãy kiểm tra kết nối và thử lại.";
+      message.textContent = data?.error || providerKeyErrorMessage(
+        error,
+        "Không thể xóa key. Hãy kiểm tra kết nối và thử lại."
+      );
       return;
     }
     providerKeyStatuses[provider] = false;

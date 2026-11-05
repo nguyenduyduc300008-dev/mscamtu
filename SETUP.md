@@ -50,7 +50,7 @@ Gemini API có quota miễn phí giới hạn tùy model, khu vực và điều 
 
 Trang **Lịch sử giao việc** có bộ lọc ngày, AI Agent và trạng thái. **Báo cáo tuần** tổng hợp tuần đã hoàn thành gần nhất theo giờ máy, chuyển sang kỳ mới vào Thứ Hai lúc 09:00 và hiển thị trên trang. Khi trang đang mở, dữ liệu làm mới mỗi 5 giây; mở lại trang để xem kỳ mới nếu máy đã đóng đúng giờ báo cáo. Không gửi email/thông báo khi trang đóng. Lịch sử tải 100 nhiệm vụ mới nhất.
 
-Bảng nhiệm vụ được tạo từ migration `supabase/migrations/20261105000100_create_ai_tasks.sql`, bật Row Level Security và chỉ cho tài khoản đã đăng nhập đọc/sửa nhiệm vụ của chính mình. API key riêng của người dùng nằm trong bảng riêng chỉ Edge Function dùng service role truy cập được; function xác minh JWT trước khi thay đổi key, và người dùng không đọc được ciphertext trực tiếp qua Data API. API key đã mã hóa được dùng ở backend cho nhiệm vụ tương ứng; agent không thực thi lệnh, đăng bài hay tác động tài khoản bên ngoài.
+Bảng nhiệm vụ được tạo từ migration `supabase/migrations/20261105000100_create_ai_tasks.sql`, bật Row Level Security và chỉ cho tài khoản đã đăng nhập đọc/sửa nhiệm vụ của chính mình. Hai Edge Function đặt `verify_jwt = false` vì tùy chọn kiểm tra JWT legacy ở gateway không hỗ trợ mọi signing key hiện hành. Thay vào đó, mỗi function tự xác minh phiên bằng `auth.getUser()` trước khi xử lý; không bỏ bước kiểm tra này. API key riêng nằm trong bảng chỉ Edge Function dùng service role truy cập được và không đọc được trực tiếp qua Data API. API key đã mã hóa được dùng ở backend cho nhiệm vụ tương ứng; agent không thực thi lệnh, đăng bài hay tác động tài khoản bên ngoài.
 
 ## 3. Cấu hình GitHub Pages
 
