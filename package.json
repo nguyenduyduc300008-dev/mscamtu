@@ -1,7 +1,7 @@
 {
-  "name": "nguoi-di-qua-mua-nho",
+  "name": "swing-music",
   "version": "1.0.0",
-  "description": "A rainy-night 3D interactive story about finding love after heartbreak.",
+  "description": "Swing Music website for instruments, lessons, and hourly rentals",
   "private": true,
   "type": "module",
   "scripts": {
