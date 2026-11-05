@@ -164,6 +164,9 @@ h1 em, h2 em { color: #98684e; font-weight: 400; }
 .connection-copy > p:not(.eyebrow) { max-width: 390px; margin: 23px 0 24px; color: #c8b7a6; font-size: 10px; line-height: 2; }
 .button-light { color: #473327; background: #e7d4be; }
 .button-light:hover { background: #f5e8d8; }
+.figma-link { display: table; margin-top: 16px; color: #dcc3a9; font-size: 9px; text-decoration: underline; text-decoration-color: rgba(220,195,169,.5); text-underline-offset: 4px; }
+.figma-link span { margin-left: 5px; }
+.figma-link:hover { color: #fff3e3; }
 
 .contact-section { display: grid; grid-template-columns: .85fr 1fr; gap: 12%; padding-top: 110px; padding-bottom: 105px; }
 .contact-intro h2 { font-size: clamp(53px, 6vw, 74px); }
