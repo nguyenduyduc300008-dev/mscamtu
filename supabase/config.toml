@@ -1,0 +1,4 @@
+project_id = "ai-studio-office"
+
+[functions.run-agent]
+verify_jwt = true

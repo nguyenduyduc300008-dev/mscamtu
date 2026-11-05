@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fb">
+    <meta name="description" content="Mô hình văn phòng AI 3D, quản lý các phòng ban và công việc của AI Agent.">
+    <title>Văn phòng AI 3D — AI Studio</title>
+  </head>
+  <body>
+    <section class="auth-screen" id="auth-screen" aria-labelledby="auth-title">
+      <form class="auth-card" id="login-form">
+        <a class="brand auth-brand" href="./office.html" aria-label="AI Studio">
+          <span class="brand-mark">A</span>
+          <span><strong>AI STUDIO</strong><small>VĂN PHÒNG SỐ</small></span>
+        </a>
+        <p class="eyebrow"><span class="live-dot"></span> KHÔNG GIAN LÀM VIỆC RIÊNG</p>
+        <h1 id="auth-title">Đăng nhập<br><span>văn phòng AI</span></h1>
+        <p class="auth-copy">Đăng nhập để quản lý nhiệm vụ và kết quả của các AI Agent.</p>
+        <label>Email quản trị<input name="email" type="email" autocomplete="username" required placeholder="email@congty.com"></label>
+        <label>Mật khẩu<input name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="Nhập mật khẩu"></label>
+        <button class="button button-primary auth-submit" id="login-submit" type="submit">Đăng nhập an toàn</button>
+        <p class="auth-message" id="auth-message" role="status" aria-live="polite"></p>
+        <p class="auth-footnote">Chỉ tài khoản quản trị được tạo riêng trong Supabase mới đăng nhập được. Không có chức năng tự đăng ký.</p>
+      </form>
+    </section>
+
+    <div class="app-shell" id="app-shell" hidden>
+      <aside class="sidebar">
+        <a class="brand" href="./office.html" aria-label="AI Studio, trang tổng quan">
+          <span class="brand-mark">A</span>
+          <span><strong>AI STUDIO</strong><small>VĂN PHÒNG SỐ</small></span>
+        </a>
+
+        <nav class="primary-nav" aria-label="Điều hướng">
+          <button class="nav-item is-active" type="button"><span>◫</span>Tổng quan</button>
+          <button class="nav-item" type="button" data-notice="Lịch tự động đang ở chế độ bản demo."><span>◷</span>Lịch tự động</button>
+          <button class="nav-item" type="button" data-notice="Báo cáo tuần đang ở chế độ bản demo."><span>▤</span>Báo cáo tuần</button>
+          <button class="nav-item" type="button" data-notice="Danh sách việc đã giao đang ở chế độ bản demo."><span>✓</span>Việc đã giao <b class="nav-count">17</b></button>
+        </nav>
+
+        <div class="sidebar-heading"><span>PHÒNG BAN</span><button type="button" id="add-agent" aria-label="Thêm agent">＋</button></div>
+        <div class="agent-list" id="agent-list" aria-label="Danh sách AI Agent"></div>
+        <div class="sidebar-bottom">
+          <span class="connection-dot connected"></span>
+          <span><strong>Đã kết nối dữ liệu</strong><small>AI được gọi an toàn qua máy chủ</small></span>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div class="breadcrumbs"><span>Không gian làm việc</span><b>/</b><strong>Văn phòng AI 3D</strong></div>
+          <div class="topbar-actions">
+            <span class="today-label" id="today-label"></span>
+            <span class="account-email" id="account-email"></span>
+            <button class="avatar-button" id="logout-button" type="button" aria-label="Đăng xuất">↗</button>
+          </div>
+        </header>
+
+        <div class="page-content">
+          <section class="page-heading">
+            <div>
+              <p class="eyebrow"><span class="live-dot"></span> MÔ HÌNH DOANH NGHIỆP</p>
+              <h1>Văn phòng <span>AI 3D</span></h1>
+              <p class="page-description">Quan sát các phòng ban, theo dõi công việc và giao nhiệm vụ cho từng AI Agent.</p>
+            </div>
+            <div class="heading-actions">
+              <button class="button button-secondary" id="rotate-button" type="button" aria-pressed="false">⟳ <span>Tự xoay</span></button>
+              <button class="button button-primary" id="new-task-button" type="button">＋ Giao công việc</button>
+            </div>
+          </section>
+
+          <section class="workspace-grid" aria-label="Văn phòng ảo">
+            <div class="scene-card">
+              <div class="scene-toolbar">
+                <div class="scene-status"><span class="live-dot"></span><strong>Sơ đồ văn phòng</strong><span>•</span><span id="scene-floor-label">Tầng 1</span></div>
+                <div class="scene-tools"><button id="zoom-out" type="button" aria-label="Thu nhỏ">−</button><button id="zoom-in" type="button" aria-label="Phóng to">＋</button><button id="reset-view" type="button" aria-label="Đặt lại góc nhìn">⌖</button></div>
+              </div>
+              <div class="scene-viewport" id="scene-viewport">
+                <canvas id="office-canvas" aria-label="Mô hình văn phòng 3D. Chọn nhân viên trong danh sách để xem chi tiết."></canvas>
+                <div class="scene-key"><span><i class="key-dot working"></i>Đang làm</span><span><i class="key-dot waiting"></i>Chờ duyệt</span><span><i class="key-dot resting"></i>Nghỉ</span></div>
+                <div class="scene-hint">Kéo để xoay · Lăn chuột để phóng to</div>
+                <div class="scene-error" id="scene-error" role="alert" hidden>Không thể khởi tạo mô hình 3D. Hãy tải lại trang hoặc dùng trình duyệt hỗ trợ WebGL.</div>
+              </div>
+              <div class="floor-bar">
+                <span class="floor-caption">TẦNG</span>
+                <div class="floor-tabs" id="floor-tabs" role="tablist" aria-label="Chọn tầng"></div>
+              </div>
+            </div>
+
+            <aside class="detail-card" aria-label="Thông tin AI Agent">
+              <div class="detail-heading"><span>NHÂN SỰ AI</span><span class="detail-live"><i class="key-dot working"></i>AI qua backend</span></div>
+              <div id="agent-detail"></div>
+              <div class="activity-block">
+                <div class="block-heading"><strong>Hoạt động gần đây</strong></div>
+                <div class="activity-list" id="activity-list" aria-live="polite"></div>
+              </div>
+              <p class="demo-note">Tiến độ và kết quả được lưu trong Supabase. Agent chỉ tạo nội dung; không tự đăng hoặc thay đổi tài khoản bên ngoài.</p>
+            </aside>
+          </section>
+
+          <section class="metric-grid" aria-label="Chỉ số hoạt động">
+            <article class="metric-card"><div class="metric-label">Tổng nhiệm vụ <span>◫</span></div><strong id="metric-total">0</strong><small>Đã lưu trên tài khoản</small></article>
+            <article class="metric-card"><div class="metric-label">Đang xử lý <span class="metric-icon blue">↻</span></div><strong id="metric-running">0</strong><small>Đang gọi AI</small></article>
+            <article class="metric-card"><div class="metric-label">Đã hoàn thành <span class="metric-icon green">✓</span></div><strong class="green-text" id="metric-completed">0</strong><small>Có kết quả trả về</small></article>
+            <article class="metric-card"><div class="metric-label">Chờ xử lý <span class="metric-icon purple">◷</span></div><strong id="metric-queued">0</strong><small>Đang nằm trong hàng đợi</small></article>
+            <article class="metric-card"><div class="metric-label">Lỗi cần xem lại <span>!</span></div><strong id="metric-failed">0</strong><small>Chưa tính nội dung thất bại</small></article>
+          </section>
+
+          <section class="reports-grid" aria-label="Các nhiệm vụ đã giao">
+            <article class="report-card task-board">
+              <div class="report-heading"><div><strong>Lịch sử giao việc</strong><small id="task-count-label">Đang tải nhiệm vụ...</small></div><button id="refresh-tasks" type="button">Làm mới</button></div>
+              <div class="task-list" id="task-list" aria-live="polite"></div>
+          </section>
+          <footer class="page-footer">AI Studio · Bản mô phỏng giao diện văn phòng AI 3D</footer>
+        </div>
+      </main>
+    </div>
+
+    <dialog class="task-dialog" id="task-dialog">
+      <form method="dialog" class="dialog-close-row"><button class="dialog-close" aria-label="Đóng">×</button></form>
+      <p class="eyebrow">GIAO VIỆC CHO AI AGENT</p>
+      <h2>Tạo nhiệm vụ mới</h2>
+      <form id="task-form">
+        <label>AI Agent<select id="task-agent" required></select></label>
+        <label>Nhà cung cấp AI<select id="task-provider" required><option value="gemini">Google Gemini</option><option value="openai">OpenAI / ChatGPT</option></select></label>
+        <label>Nội dung công việc<textarea id="task-prompt" rows="4" maxlength="500" required placeholder="Mô tả kết quả bạn muốn nhận..."></textarea></label>
+        <p class="dialog-disclaimer">Nội dung công việc sẽ được gửi đến nhà cung cấp AI bạn chọn để xử lý. API key được giữ ở backend.</p>
+        <button class="button button-primary dialog-submit" type="submit">Giao việc cho AI</button>
+      </form>
+    </dialog>
+
+    <dialog class="task-dialog result-dialog" id="result-dialog">
+      <form method="dialog" class="dialog-close-row"><button class="dialog-close" aria-label="Đóng kết quả">×</button></form>
+      <p class="eyebrow">KẾT QUẢ AI AGENT</p>
+      <h2 id="result-title">Nhiệm vụ</h2>
+      <p class="result-meta" id="result-meta"></p>
+      <pre class="result-content" id="result-content"></pre>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/src/office.js"></script>
+  </body>
+</html>
