@@ -589,12 +589,97 @@ async function handleLogin(event) {
   }
 }
 
+function showPasswordRecovery() {
+  document.querySelector("#login-form").hidden = true;
+  document.querySelector("#password-recovery-form").hidden = false;
+  document.querySelector("#auth-screen").hidden = false;
+  document.querySelector("#app-shell").hidden = true;
+}
+
+function showLoginForm(message = "") {
+  document.querySelector("#login-form").hidden = false;
+  document.querySelector("#password-recovery-form").hidden = true;
+  document.querySelector("#password-recovery-form").reset();
+  document.querySelector("#password-recovery-message").textContent = "";
+  document.querySelector("#auth-message").textContent = message;
+  document.querySelector("#auth-message").classList.remove("success");
+  document.querySelector("#auth-screen").hidden = false;
+  document.querySelector("#app-shell").hidden = true;
+}
+
+async function requestPasswordRecovery() {
+  const form = document.querySelector("#login-form");
+  const email = String(new FormData(form).get("email")).trim();
+  const message = document.querySelector("#auth-message");
+  const button = document.querySelector("#forgot-password");
+  if (!supabase) {
+    message.textContent = "Chưa cấu hình Supabase.";
+    return;
+  }
+  if (!email) {
+    message.textContent = "Nhập email quản trị để nhận liên kết đặt lại mật khẩu.";
+    form.elements.email.focus();
+    return;
+  }
+  button.disabled = true;
+  message.textContent = "";
+  message.classList.remove("success");
+  const redirectTo = new URL("./office.html", window.location.href).href;
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+  button.disabled = false;
+  if (error) {
+    console.error("Không thể gửi liên kết đặt lại mật khẩu:", error);
+    message.textContent = "Không gửi được liên kết. Kiểm tra cấu hình email Supabase rồi thử lại.";
+    return;
+  }
+  message.classList.add("success");
+  message.textContent = "Nếu email có trong hệ thống, liên kết đặt lại mật khẩu sẽ được gửi.";
+}
+
+async function handlePasswordRecovery(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const formData = new FormData(form);
+  const password = String(formData.get("password"));
+  const confirmation = String(formData.get("password-confirmation"));
+  const message = document.querySelector("#password-recovery-message");
+  const button = document.querySelector("#password-recovery-submit");
+  message.classList.remove("success");
+  if (password.length < 8) {
+    message.textContent = "Mật khẩu mới cần có ít nhất 8 ký tự.";
+    return;
+  }
+  if (password !== confirmation) {
+    message.textContent = "Hai mật khẩu không khớp.";
+    return;
+  }
+  button.disabled = true;
+  button.textContent = "Đang cập nhật...";
+  message.textContent = "";
+  const { error } = await supabase.auth.updateUser({ password });
+  button.disabled = false;
+  button.textContent = "Cập nhật mật khẩu";
+  if (error) {
+    console.error("Không thể cập nhật mật khẩu:", error);
+    message.textContent = "Không cập nhật được mật khẩu. Hãy mở lại liên kết đặt lại rồi thử lại.";
+    return;
+  }
+  const { error: signOutError } = await supabase.auth.signOut();
+  if (signOutError) {
+    console.error("Không thể kết thúc phiên đặt lại mật khẩu:", signOutError);
+    message.textContent = "Mật khẩu đã đổi nhưng chưa thể kết thúc phiên. Hãy đăng xuất rồi đăng nhập lại.";
+    return;
+  }
+  showLoginForm("Mật khẩu đã cập nhật. Hãy đăng nhập bằng mật khẩu mới.");
+  document.querySelector("#auth-message").classList.add("success");
+}
+
 function leaveApp() {
   currentUser = undefined;
   clearInterval(taskRefreshTimer);
   taskRefreshTimer = undefined;
   appShell.hidden = true;
-  authScreen.hidden = false;
+  showLoginForm();
 }
 
 async function enterApp(user) {
@@ -617,7 +702,19 @@ async function enterApp(user) {
 
 async function initializeAuthentication() {
   const loginForm = document.querySelector("#login-form");
+  const recoveryForm = document.querySelector("#password-recovery-form");
   loginForm.addEventListener("submit", handleLogin);
+  recoveryForm.addEventListener("submit", handlePasswordRecovery);
+  document.querySelector("#forgot-password").addEventListener("click", () => { void requestPasswordRecovery(); });
+  document.querySelector("#password-recovery-cancel").addEventListener("click", async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Không thể hủy phiên đặt lại mật khẩu:", error);
+      document.querySelector("#password-recovery-message").textContent = "Không thể quay lại đăng nhập. Hãy tải lại trang.";
+      return;
+    }
+    showLoginForm();
+  });
   document.querySelector("#logout-button").addEventListener("click", async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -627,10 +724,15 @@ async function initializeAuthentication() {
   });
   if (!supabase) {
     document.querySelector("#login-submit").disabled = true;
+    document.querySelector("#forgot-password").disabled = true;
     document.querySelector("#auth-message").textContent = "Chưa cấu hình Supabase. Làm theo SETUP.md rồi thêm VITE_SUPABASE_URL và VITE_SUPABASE_ANON_KEY.";
     return;
   }
-  supabase.auth.onAuthStateChange((_event, session) => {
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "PASSWORD_RECOVERY") {
+      showPasswordRecovery();
+      return;
+    }
     queueMicrotask(() => {
       if (session?.user) void enterApp(session.user);
       else leaveApp();
@@ -642,7 +744,13 @@ async function initializeAuthentication() {
     document.querySelector("#auth-message").textContent = "Không kiểm tra được phiên đăng nhập. Tải lại trang để thử lại.";
     return;
   }
-  if (data.session?.user) await enterApp(data.session.user);
+  if (data.session?.user) {
+    if (new URLSearchParams(window.location.hash.slice(1)).get("type") === "recovery") {
+      showPasswordRecovery();
+    } else {
+      await enterApp(data.session.user);
+    }
+  }
 }
 
 function setupEvents() {

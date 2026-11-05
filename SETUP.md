@@ -6,10 +6,10 @@ Trang văn phòng là frontend tĩnh trên GitHub Pages. Đăng nhập, database
 
 1. Tạo project tại [supabase.com/dashboard](https://supabase.com/dashboard) và lưu database password an toàn.
 2. Trong **Authentication → Providers → Email**, tắt **Allow new users to sign up**. Đây là cấu hình tài khoản quản trị dùng chung đã chọn; không tạo public signup.
-3. Trong **Authentication → Users**, tạo tài khoản quản trị bằng email/password. Cấp mật khẩu riêng và không commit/lưu trong repo.
-4. Trong **Authentication → URL Configuration**, đặt Site URL theo URL Pages của repository và thêm URL local để phát triển, ví dụ:
-   - `https://nguyenduyduc300008-dev.github.io/mscamtu/`
-   - `http://127.0.0.1:5173/`
+3. Trong **Authentication → Users**, tạo hoặc mời tài khoản quản trị. Không commit/lưu mật khẩu trong repo.
+4. Trong **Authentication → URL Configuration**, đặt Site URL và Redirect URLs trỏ tới trang văn phòng, ví dụ:
+   - Site URL: `https://nguyenduyduc300008-dev.github.io/mscamtu/office.html`
+   - Redirect URL local: `http://127.0.0.1:5173/office.html`
 
 ## 2. Tạo bảng và triển khai Edge Function
 
@@ -63,5 +63,7 @@ npm run dev
 ```
 
 Mở `http://127.0.0.1:5173/office.html`. Các nhiệm vụ và tiến độ được tải lại từ Supabase; tiến độ là các mốc xử lý của backend, không phải ước lượng token/thời gian còn lại. Chỉ tài khoản quản trị được tạo trong Supabase đăng nhập được.
+
+Nếu cần đặt hoặc quên mật khẩu, nhập email ở màn hình đăng nhập và chọn **Quên mật khẩu?**. Liên kết trong email sẽ quay lại trang văn phòng để đặt mật khẩu mới; cần cấu hình SMTP/email trong Supabase để gửi thư thực tế.
 
 Nếu thiếu cấu hình Supabase, trang chủ động dừng ở màn hình đăng nhập và báo cần cấu hình; không chuyển sang chế độ giả lập hoặc lưu mật khẩu trên trình duyệt.
