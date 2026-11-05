@@ -589,6 +589,31 @@ async function handleLogin(event) {
   }
 }
 
+async function handleGoogleLogin() {
+  const message = document.querySelector("#auth-message");
+  const button = document.querySelector("#google-login");
+  if (!supabase) {
+    message.textContent = "Chưa cấu hình Supabase.";
+    return;
+  }
+  button.disabled = true;
+  message.textContent = "";
+  message.classList.remove("success");
+  const redirectTo = new URL("./office.html", window.location.href).href;
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo,
+      queryParams: { prompt: "select_account" }
+    }
+  });
+  if (error) {
+    console.error("Đăng nhập Google thất bại:", error);
+    message.textContent = "Không thể đăng nhập bằng Google. Kiểm tra cấu hình Google provider trong Supabase.";
+    button.disabled = false;
+  }
+}
+
 function showPasswordRecovery() {
   document.querySelector("#login-form").hidden = true;
   document.querySelector("#password-recovery-form").hidden = false;
@@ -705,6 +730,7 @@ async function initializeAuthentication() {
   const recoveryForm = document.querySelector("#password-recovery-form");
   loginForm.addEventListener("submit", handleLogin);
   recoveryForm.addEventListener("submit", handlePasswordRecovery);
+  document.querySelector("#google-login").addEventListener("click", () => { void handleGoogleLogin(); });
   document.querySelector("#forgot-password").addEventListener("click", () => { void requestPasswordRecovery(); });
   document.querySelector("#password-recovery-cancel").addEventListener("click", async () => {
     const { error } = await supabase.auth.signOut();
@@ -724,6 +750,7 @@ async function initializeAuthentication() {
   });
   if (!supabase) {
     document.querySelector("#login-submit").disabled = true;
+    document.querySelector("#google-login").disabled = true;
     document.querySelector("#forgot-password").disabled = true;
     document.querySelector("#auth-message").textContent = "Chưa cấu hình Supabase. Làm theo SETUP.md rồi thêm VITE_SUPABASE_URL và VITE_SUPABASE_ANON_KEY.";
     return;
