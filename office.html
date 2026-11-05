@@ -87,6 +87,7 @@
             </div>
             <div class="heading-actions">
               <button class="button button-secondary" id="rotate-button" type="button" aria-pressed="false">⟳ <span>Tự xoay</span></button>
+              <button class="button button-secondary" id="connect-ai-button" type="button">Kết nối API AI</button>
               <button class="button button-primary" id="new-task-button" type="button">＋ Giao công việc</button>
             </div>
           </section>
@@ -128,10 +129,25 @@
             <article class="metric-card"><div class="metric-label">Lỗi cần xem lại <span>!</span></div><strong id="metric-failed">0</strong><small>Chưa tính nội dung thất bại</small></article>
           </section>
 
-          <section class="reports-grid" aria-label="Các nhiệm vụ đã giao">
+          <section class="reports-grid" aria-label="Báo cáo và công việc">
             <article class="report-card task-board">
               <div class="report-heading"><div><strong>Lịch sử giao việc</strong><small id="task-count-label">Đang tải nhiệm vụ...</small></div><button id="refresh-tasks" type="button">Làm mới</button></div>
+              <div class="task-filters" aria-label="Lọc lịch sử nhiệm vụ">
+                <label>Từ ngày<input id="task-filter-from" type="date"></label>
+                <label>Đến ngày<input id="task-filter-to" type="date"></label>
+                <label>Phòng ban<select id="task-filter-agent"><option value="">Tất cả AI Agent</option></select></label>
+                <label>Trạng thái<select id="task-filter-status"><option value="">Tất cả trạng thái</option><option value="queued">Chờ xử lý</option><option value="in_progress">Đang xử lý</option><option value="completed">Hoàn thành</option><option value="failed">Thất bại</option></select></label>
+                <button class="task-filter-reset" id="task-filter-reset" type="button">Xóa lọc</button>
+              </div>
               <div class="task-list" id="task-list" aria-live="polite"></div>
+            </article>
+            <article class="report-card weekly-report" aria-labelledby="weekly-report-title">
+              <div class="report-heading"><div><strong id="weekly-report-title">Báo cáo tuần</strong><small id="weekly-report-period">Đang tổng hợp...</small></div><span class="weekly-report-schedule">Thứ Hai · 09:00</span></div>
+              <p class="weekly-report-note">Tổng kết tuần đã hoàn thành gần nhất từ 100 nhiệm vụ mới nhất; chuyển sang tuần mới vào Thứ Hai 09:00.</p>
+              <div class="weekly-report-metrics" id="weekly-report-metrics" aria-live="polite"></div>
+              <div class="weekly-report-tasks" id="weekly-report-tasks"></div>
+              <p class="weekly-report-footnote">Báo cáo chỉ hiển thị trong trang này, không gửi email hoặc thông báo khi trang đóng.</p>
+            </article>
           </section>
           <footer class="page-footer">AI Studio · Bản mô phỏng giao diện văn phòng AI 3D</footer>
         </div>
@@ -147,8 +163,36 @@
         <label>Nhà cung cấp AI<select id="task-provider" required><option value="gemini">Google Gemini</option><option value="openai">OpenAI / ChatGPT</option></select></label>
         <label>Nội dung công việc<textarea id="task-prompt" rows="4" maxlength="500" required placeholder="Mô tả kết quả bạn muốn nhận..."></textarea></label>
         <p class="dialog-disclaimer">Nội dung công việc sẽ được gửi đến nhà cung cấp AI bạn chọn để xử lý. API key được giữ ở backend.</p>
+        <button class="auth-link task-connect-link" id="task-connect-ai" type="button">Cần thêm API key? Mở phần kết nối AI</button>
         <button class="button button-primary dialog-submit" type="submit">Giao việc cho AI</button>
       </form>
+    </dialog>
+
+    <dialog class="task-dialog connection-dialog" id="connection-dialog" aria-labelledby="connection-title">
+      <form method="dialog" class="dialog-close-row"><button class="dialog-close" aria-label="Đóng phần kết nối API">×</button></form>
+      <p class="eyebrow">NHÀ CUNG CẤP AI</p>
+      <h2 id="connection-title">Kết nối API để giao việc</h2>
+      <p class="connection-intro">Chọn nhà cung cấp, tạo API key bằng tài khoản của bạn, rồi lưu key ở Supabase. Key không được nhập vào trang web hoặc lưu trên GitHub.</p>
+      <section class="provider-setup">
+        <h3>Google Gemini · có thể dùng miễn phí</h3>
+        <p>Google AI Studio có mức miễn phí giới hạn theo model, khu vực và quota hiện hành. Không gửi dữ liệu nhạy cảm khi dùng mức miễn phí.</p>
+        <a class="button button-secondary setup-link" href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener noreferrer">Tạo Gemini API key ↗</a>
+        <code>GEMINI_API_KEY</code>
+        <a class="provider-pricing-link" href="https://ai.google.dev/gemini-api/docs/pricing" target="_blank" rel="noopener noreferrer">Xem giá và giới hạn ↗</a>
+      </section>
+      <section class="provider-setup">
+        <h3>OpenAI API · tính phí riêng</h3>
+        <p>OpenAI API là dịch vụ tính phí theo mức sử dụng và thường không nằm trong gói ChatGPT. Kiểm tra giá và billing trước khi tạo key.</p>
+        <a class="button button-secondary setup-link" href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">Tạo OpenAI API key ↗</a>
+        <code>OPENAI_API_KEY</code>
+        <a class="provider-pricing-link" href="https://openai.com/api/pricing/" target="_blank" rel="noopener noreferrer">Xem giá API ↗</a>
+      </section>
+      <ol class="connection-steps">
+        <li>Mở Supabase Secrets, thêm secret của nhà cung cấp bạn chọn và dán API key vào đó.</li>
+        <li>Quay lại giao việc, chọn đúng nhà cung cấp. Không cần thêm key vào GitHub Pages.</li>
+      </ol>
+      <a class="button button-primary setup-link secrets-link" href="https://supabase.com/dashboard/project/afkhbcgookwwqvvvwxsx/functions/secrets" target="_blank" rel="noopener noreferrer">Mở Supabase Edge Function Secrets ↗</a>
+      <p class="dialog-disclaimer">Quota miễn phí có thể thay đổi hoặc hết. Mỗi API key do bạn tự quản lý; không gửi key qua chat hay cho người khác.</p>
     </dialog>
 
     <dialog class="task-dialog result-dialog" id="result-dialog">

@@ -39,6 +39,10 @@ Trong **Supabase → Edge Functions → Secrets**, đặt các secrets sau. Lấ
 
 Hai nhà cung cấp AI được chọn riêng cho từng nhiệm vụ. Có thể đặt model không bắt buộc bằng `OPENAI_MODEL` và `GEMINI_MODEL`; mặc định lần lượt là `gpt-4.1-mini` và `gemini-2.5-flash`. Mỗi lời giao việc được gửi tới nhà cung cấp đã chọn và có thể phát sinh phí theo tài khoản/quota của bạn.
 
+Trong trang Văn phòng AI, **Kết nối API AI** mở hướng dẫn tạo key và liên kết tới Supabase Edge Function Secrets. Gemini API có quota miễn phí giới hạn tùy model, khu vực và điều khoản Google; OpenAI API tính phí riêng theo sử dụng và không mặc nhiên nằm trong gói ChatGPT. Không dán API key vào trang, GitHub, hoặc chat. Chỉ gửi dữ liệu phù hợp với chính sách/quyền riêng tư của nhà cung cấp.
+
+Trang **Lịch sử giao việc** có bộ lọc ngày, AI Agent và trạng thái. **Báo cáo tuần** tổng hợp tuần đã hoàn thành gần nhất theo giờ máy, chuyển sang kỳ mới vào Thứ Hai lúc 09:00 và hiển thị trên trang. Khi trang đang mở, dữ liệu làm mới mỗi 5 giây; mở lại trang để xem kỳ mới nếu máy đã đóng đúng giờ báo cáo. Không gửi email/thông báo khi trang đóng. Lịch sử tải 100 nhiệm vụ mới nhất.
+
 Bảng được tạo từ migration `supabase/migrations/20261105000100_create_ai_tasks.sql`, bật Row Level Security và chỉ cho tài khoản đã đăng nhập đọc/sửa nhiệm vụ của chính mình. Function xác minh JWT, truy cập dữ liệu theo RLS bằng phiên người dùng (không cần service-role key) và không thực thi lệnh, đăng bài hay tác động tài khoản bên ngoài.
 
 ## 3. Cấu hình GitHub Pages

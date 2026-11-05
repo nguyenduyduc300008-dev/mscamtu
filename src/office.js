@@ -149,11 +149,31 @@ function renderAgentDetail() {
 
 function renderTaskList() {
   const taskCount = document.querySelector("#task-count-label");
-  taskCount.textContent = taskLoadError ? "Không thể tải dữ liệu" : `${taskQueue.length} nhiệm vụ đã lưu`;
+  const fromValue = document.querySelector("#task-filter-from").value;
+  const toValue = document.querySelector("#task-filter-to").value;
+  const agentValue = document.querySelector("#task-filter-agent").value;
+  const statusValue = document.querySelector("#task-filter-status").value;
+  const fromDate = fromValue ? new Date(`${fromValue}T00:00:00`) : null;
+  const toDate = toValue ? new Date(`${toValue}T23:59:59.999`) : null;
+  if (fromDate && toDate && fromDate > toDate) {
+    taskCount.textContent = "Khoảng ngày không hợp lệ";
+    taskList.innerHTML = '<p class="task-empty">Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.</p>';
+    return;
+  }
+  const visibleTasks = taskQueue.filter((task) => {
+    const createdAt = new Date(task.created_at);
+    return (!fromDate || createdAt >= fromDate)
+      && (!toDate || createdAt <= toDate)
+      && (!agentValue || task.agent_id === agentValue)
+      && (!statusValue || task.status === statusValue);
+  });
+  taskCount.textContent = taskLoadError
+    ? "Không thể tải dữ liệu"
+    : `${visibleTasks.length} / ${taskQueue.length} nhiệm vụ (100 gần nhất)`;
   taskList.innerHTML = taskLoadError
     ? `<p class="task-empty">${escapeHtml(taskLoadError)}</p>`
-    : taskQueue.length
-      ? taskQueue.map((task) => {
+    : visibleTasks.length
+      ? visibleTasks.map((task) => {
         const status = taskStatusLabels[task.status] || "Không xác định";
         const provider = providerLabels[task.provider] || task.provider;
         const agent = getAgent(task.agent_id)?.name || "AI Agent";
@@ -171,7 +191,56 @@ function renderTaskList() {
             ${error}${result}${retry}
           </article>`;
       }).join("")
-      : '<p class="task-empty">Chưa có nhiệm vụ. Chọn “Giao công việc” để bắt đầu.</p>';
+      : taskQueue.length
+        ? '<p class="task-empty">Không có công việc phù hợp với bộ lọc.</p>'
+        : '<p class="task-empty">Chưa có nhiệm vụ. Chọn “Giao công việc” để bắt đầu.</p>';
+}
+
+function getPreviousWeekRange() {
+  const today = new Date();
+  const currentMonday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  currentMonday.setDate(currentMonday.getDate() - ((currentMonday.getDay() + 6) % 7));
+  const beforeScheduledReport = today.getDay() === 1 && today.getHours() < 9;
+  const reportEndMonday = new Date(currentMonday);
+  if (beforeScheduledReport) reportEndMonday.setDate(reportEndMonday.getDate() - 7);
+  const start = new Date(reportEndMonday);
+  start.setDate(start.getDate() - 7);
+  const end = new Date(reportEndMonday.getTime() - 1);
+  return { start, end };
+}
+
+function formatReportDate(value) {
+  return new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }).format(value);
+}
+
+function renderWeeklyReport() {
+  const { start, end } = getPreviousWeekRange();
+  const weeklyTasks = taskQueue.filter((task) => {
+    const createdAt = new Date(task.created_at);
+    return createdAt >= start && createdAt <= end;
+  });
+  const count = (status) => weeklyTasks.filter((task) => task.status === status).length;
+  const active = count("queued") + count("in_progress");
+  document.querySelector("#weekly-report-period").textContent = `${formatReportDate(start)} – ${formatReportDate(end)}`;
+  document.querySelector("#weekly-report-metrics").innerHTML = `
+    <div><strong>${weeklyTasks.length}</strong><span>Đã giao</span></div>
+    <div><strong>${count("completed")}</strong><span>Hoàn thành</span></div>
+    <div><strong>${active}</strong><span>Đang xử lý</span></div>
+    <div><strong>${count("failed")}</strong><span>Có lỗi</span></div>`;
+  const latestTasks = weeklyTasks.slice(0, 5);
+  document.querySelector("#weekly-report-tasks").innerHTML = latestTasks.length
+    ? `<strong class="weekly-report-list-title">Công việc trong tuần</strong>${latestTasks.map((task) => `
+      <button class="weekly-task-link" type="button" data-weekly-task-result="${task.id}">
+        <span>${escapeHtml(task.title)}</span><small>${escapeHtml(getAgent(task.agent_id)?.name || "AI Agent")} · ${escapeHtml(taskStatusLabels[task.status] || task.status)}</small>
+      </button>`).join("")}`
+    : '<p class="weekly-report-empty">Không có công việc nào được giao trong tuần này.</p>';
+}
+
+function populateTaskAgentFilter() {
+  const select = document.querySelector("#task-filter-agent");
+  select.innerHTML = '<option value="">Tất cả AI Agent</option>' + agents.map((agent) =>
+    `<option value="${escapeHtml(agent.id)}">${escapeHtml(agent.name)}</option>`
+  ).join("");
 }
 
 function renderMetrics() {
@@ -186,6 +255,7 @@ function renderMetrics() {
 function renderDashboard() {
   renderMetrics();
   renderTaskList();
+  renderWeeklyReport();
   renderAgentList();
   renderAgentDetail();
   renderActivities();
@@ -474,6 +544,11 @@ function openTaskDialog() {
   select.innerHTML = agents.map((agent) => `<option value="${agent.id}"${agent.id === selectedAgentId ? " selected" : ""}>${escapeHtml(agent.name)} — ${escapeHtml(agent.role)}</option>`).join("");
   if (!dialog.open) dialog.showModal();
   document.querySelector("#task-prompt").focus();
+}
+
+function openConnectionDialog() {
+  const dialog = document.querySelector("#connection-dialog");
+  if (!dialog.open) dialog.showModal();
 }
 
 async function saveTask(event) {
@@ -790,6 +865,8 @@ function setupEvents() {
     if (button) setTeam(button.dataset.team);
   });
   document.querySelector("#new-task-button").addEventListener("click", openTaskDialog);
+  document.querySelector("#connect-ai-button").addEventListener("click", openConnectionDialog);
+  document.querySelector("#task-connect-ai").addEventListener("click", openConnectionDialog);
   document.querySelector("#add-agent").addEventListener("click", () => showToast("12 profile Copilot Agent đã có trong .github/agents/."));
   document.querySelector("#task-form").addEventListener("submit", (event) => { void saveTask(event); });
   document.querySelector("#refresh-tasks").addEventListener("click", (event) => {
@@ -797,11 +874,26 @@ function setupEvents() {
     button.disabled = true;
     void refreshTasks().finally(() => { button.disabled = false; });
   });
+  ["#task-filter-from", "#task-filter-to", "#task-filter-agent", "#task-filter-status"].forEach((selector) => {
+    document.querySelector(selector).addEventListener("input", renderTaskList);
+    document.querySelector(selector).addEventListener("change", renderTaskList);
+  });
+  document.querySelector("#task-filter-reset").addEventListener("click", () => {
+    document.querySelector("#task-filter-from").value = "";
+    document.querySelector("#task-filter-to").value = "";
+    document.querySelector("#task-filter-agent").value = "";
+    document.querySelector("#task-filter-status").value = "";
+    renderTaskList();
+  });
   taskList.addEventListener("click", (event) => {
     const button = event.target.closest("[data-task-result]");
     if (button) showTaskResult(button.dataset.taskResult);
     const retryButton = event.target.closest("[data-retry-task]");
     if (retryButton) void retryTask(retryButton.dataset.retryTask);
+  });
+  document.querySelector("#weekly-report-tasks").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-weekly-task-result]");
+    if (button) showTaskResult(button.dataset.weeklyTaskResult);
   });
   document.querySelector("#rotate-button").addEventListener("click", (event) => {
     autoRotate = !autoRotate;
@@ -823,6 +915,7 @@ function setupEvents() {
 function init() {
   const now = new Date();
   document.querySelector("#today-label").textContent = new Intl.DateTimeFormat("vi-VN", { weekday: "short", day: "2-digit", month: "2-digit" }).format(now);
+  populateTaskAgentFilter();
   renderFloorTabs();
   renderDashboard();
   renderActivities();
