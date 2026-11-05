@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { decryptProviderKey } from "../_shared/provider-keys.ts";
 
 const agentInstructions: Record<string, string> = {
   coordinator: "Phân tích yêu cầu, chia thành các bước cụ thể, chỉ ra kết quả và rủi ro cần người dùng xác nhận. Không giả vờ đã giao cho agent khác.",
@@ -46,9 +47,7 @@ async function updateTask(
   if (error) throw error;
 }
 
-async function generateOpenAI(prompt: string, instruction: string) {
-  const apiKey = Deno.env.get("OPENAI_API_KEY");
-  if (!apiKey) throw new Error("OpenAI API key is not configured.");
+async function generateOpenAI(prompt: string, instruction: string, apiKey: string) {
   const model = Deno.env.get("OPENAI_MODEL") || "gpt-4.1-mini";
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -73,9 +72,7 @@ async function generateOpenAI(prompt: string, instruction: string) {
   return result.trim();
 }
 
-async function generateGemini(prompt: string, instruction: string) {
-  const apiKey = Deno.env.get("GEMINI_API_KEY");
-  if (!apiKey) throw new Error("Gemini API key is not configured.");
+async function generateGemini(prompt: string, instruction: string, apiKey: string) {
   const model = Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash";
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
@@ -101,6 +98,35 @@ async function generateGemini(prompt: string, instruction: string) {
     .trim();
   if (typeof result !== "string" || !result) throw new Error("Gemini returned an empty result.");
   return result;
+}
+
+async function getProviderApiKey(
+  userId: string,
+  provider: "gemini" | "openai",
+  projectUrl: string
+) {
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!serviceRoleKey) throw new Error("Provider key storage is unavailable.");
+  const serviceClient = createClient(projectUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+  const { data, error } = await serviceClient
+    .from("user_ai_provider_keys")
+    .select("ciphertext, iv")
+    .eq("owner_id", userId)
+    .eq("provider", provider)
+    .maybeSingle();
+  if (error) throw error;
+  if (data) {
+    const encryptionSecret = Deno.env.get("AI_KEY_ENCRYPTION_SECRET");
+    if (!encryptionSecret || encryptionSecret.length < 32) {
+      throw new Error("AI provider key encryption is not configured.");
+    }
+    return await decryptProviderKey(encryptionSecret, data.ciphertext, data.iv);
+  }
+  const environmentKey = Deno.env.get(provider === "gemini" ? "GEMINI_API_KEY" : "OPENAI_API_KEY");
+  if (!environmentKey) throw new Error("No API key is configured for the selected provider.");
+  return environmentKey;
 }
 
 Deno.serve(async (request: Request) => {
@@ -189,10 +215,11 @@ Deno.serve(async (request: Request) => {
 
   try {
     await updateTask(userClient, task.id, { progress: 35 });
+    const apiKey = await getProviderApiKey(userData.user.id, task.provider, projectUrl);
     const result = task.provider === "gemini"
-      ? await generateGemini(task.prompt, agentInstructions[task.agent_id])
+      ? await generateGemini(task.prompt, agentInstructions[task.agent_id], apiKey)
       : task.provider === "openai"
-        ? await generateOpenAI(task.prompt, agentInstructions[task.agent_id])
+        ? await generateOpenAI(task.prompt, agentInstructions[task.agent_id], apiKey)
         : null;
     if (!result) {
       await updateTask(userClient, task.id, {

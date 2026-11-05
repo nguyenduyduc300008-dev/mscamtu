@@ -24,26 +24,33 @@ Cài Supabase CLI theo hướng dẫn chính thức, sau đó chạy từ thư m
 npx supabase login
 npx supabase link --project-ref YOUR_PROJECT_REF
 npx supabase db push
-npx supabase functions deploy run-agent
 ```
 
-Trong **Supabase → Edge Functions → Secrets**, đặt các secrets sau. Lấy URL và anon/publishable key từ **Project Settings → API**. API keys chỉ lưu trong Edge Function secrets:
+Trong **Supabase → Edge Functions → Secrets**, đặt các secrets sau. Lấy URL và anon/publishable key từ **Project Settings → API**. Cấu hình dùng chung nằm trong Edge Function Secrets; API key riêng theo tài khoản được mã hóa ở backend:
 
 | Secret | Giá trị |
 |---|---|
 | `SUPABASE_URL` | URL project Supabase |
 | `SUPABASE_ANON_KEY` | anon/publishable key của project |
-| `OPENAI_API_KEY` | API key từ tài khoản OpenAI, nếu dùng ChatGPT |
-| `GEMINI_API_KEY` | API key từ Google AI Studio, nếu dùng Gemini |
+| `AI_KEY_ENCRYPTION_SECRET` | Chuỗi bí mật ngẫu nhiên tối thiểu 32 ký tự, chỉ lưu trong Supabase Edge Function Secrets; dùng để mã hóa API key riêng của từng tài khoản |
 | `ALLOWED_ORIGINS` | `https://nguyenduyduc300008-dev.github.io,http://127.0.0.1:5173,http://localhost:5173` |
 
-Hai nhà cung cấp AI được chọn riêng cho từng nhiệm vụ. Có thể đặt model không bắt buộc bằng `OPENAI_MODEL` và `GEMINI_MODEL`; mặc định lần lượt là `gpt-4.1-mini` và `gemini-2.5-flash`. Mỗi lời giao việc được gửi tới nhà cung cấp đã chọn và có thể phát sinh phí theo tài khoản/quota của bạn.
+Trong **Supabase → Edge Functions → Secrets**, đặt `AI_KEY_ENCRYPTION_SECRET` bằng một giá trị ngẫu nhiên mạnh dài ít nhất 32 ký tự. Không dùng API key của nhà cung cấp làm secret này. Giữ secret ổn định và có bản sao an toàn: thay secret sẽ khiến API key đã lưu không giải mã được, cần kết nối lại. Để hỗ trợ cấu hình API key dùng chung cho toàn hệ thống (tùy chọn), có thể đặt `OPENAI_API_KEY` hoặc `GEMINI_API_KEY`; API key riêng được lưu trong giao diện sẽ được ưu tiên. Có thể đặt model bằng `OPENAI_MODEL` và `GEMINI_MODEL`; mặc định lần lượt là `gpt-4.1-mini` và `gemini-2.5-flash`.
 
-Trong trang Văn phòng AI, **Kết nối API AI** mở hướng dẫn tạo key và liên kết tới Supabase Edge Function Secrets. Gemini API có quota miễn phí giới hạn tùy model, khu vực và điều khoản Google; OpenAI API tính phí riêng theo sử dụng và không mặc nhiên nằm trong gói ChatGPT. Không dán API key vào trang, GitHub, hoặc chat. Chỉ gửi dữ liệu phù hợp với chính sách/quyền riêng tư của nhà cung cấp.
+Sau khi migration đã được áp dụng và secrets đã cấu hình, triển khai cả hai Edge Functions:
+
+```powershell
+npx supabase functions deploy manage-ai-provider-key
+npx supabase functions deploy run-agent
+```
+
+Sau khi triển khai, đăng nhập trang Văn phòng AI, chọn **Kết nối API AI**, chọn nhà cung cấp, nhập API key mới và bấm **Kiểm tra và kết nối**. Backend sẽ kiểm tra key với nhà cung cấp rồi mã hóa bằng AES-GCM trước khi lưu. Khóa mã hóa không được gửi xuống trình duyệt; bảng key không cho phép người dùng đọc trực tiếp. Có thể xóa key đã lưu ngay trong giao diện. Không nhập API key vào trang trước khi migration, Edge Function và secret mã hóa đã được cấu hình.
+
+Gemini API có quota miễn phí giới hạn tùy model, khu vực và điều khoản Google; OpenAI API tính phí riêng theo sử dụng và không mặc nhiên nằm trong gói ChatGPT. Không dán API key vào GitHub hoặc chat. Nếu key từng bị chia sẻ/lộ, thu hồi key đó tại nhà cung cấp và tạo key mới.
 
 Trang **Lịch sử giao việc** có bộ lọc ngày, AI Agent và trạng thái. **Báo cáo tuần** tổng hợp tuần đã hoàn thành gần nhất theo giờ máy, chuyển sang kỳ mới vào Thứ Hai lúc 09:00 và hiển thị trên trang. Khi trang đang mở, dữ liệu làm mới mỗi 5 giây; mở lại trang để xem kỳ mới nếu máy đã đóng đúng giờ báo cáo. Không gửi email/thông báo khi trang đóng. Lịch sử tải 100 nhiệm vụ mới nhất.
 
-Bảng được tạo từ migration `supabase/migrations/20261105000100_create_ai_tasks.sql`, bật Row Level Security và chỉ cho tài khoản đã đăng nhập đọc/sửa nhiệm vụ của chính mình. Function xác minh JWT, truy cập dữ liệu theo RLS bằng phiên người dùng (không cần service-role key) và không thực thi lệnh, đăng bài hay tác động tài khoản bên ngoài.
+Bảng nhiệm vụ được tạo từ migration `supabase/migrations/20261105000100_create_ai_tasks.sql`, bật Row Level Security và chỉ cho tài khoản đã đăng nhập đọc/sửa nhiệm vụ của chính mình. API key riêng của người dùng nằm trong bảng riêng chỉ Edge Function dùng service role truy cập được; function xác minh JWT trước khi thay đổi key, và người dùng không đọc được ciphertext trực tiếp qua Data API. API key đã mã hóa được dùng ở backend cho nhiệm vụ tương ứng; agent không thực thi lệnh, đăng bài hay tác động tài khoản bên ngoài.
 
 ## 3. Cấu hình GitHub Pages
 

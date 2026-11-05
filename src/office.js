@@ -46,6 +46,7 @@ let taskQueue = [];
 let taskLoadError = "";
 let supabase;
 let currentUser;
+let providerKeyStatuses = { gemini: false, openai: false };
 let taskRefreshTimer;
 let appEventsSetup = false;
 let renderer;
@@ -549,6 +550,100 @@ function openTaskDialog() {
 function openConnectionDialog() {
   const dialog = document.querySelector("#connection-dialog");
   if (!dialog.open) dialog.showModal();
+  void refreshProviderKeyStatuses();
+}
+
+function renderProviderKeyStatuses() {
+  for (const provider of ["gemini", "openai"]) {
+    const status = document.querySelector(`#${provider}-api-status`);
+    const removeButton = document.querySelector(`[data-remove-provider="${provider}"]`);
+    status.textContent = providerKeyStatuses[provider] ? "Đã kết nối · key được mã hóa ở máy chủ" : "Chưa kết nối";
+    removeButton.disabled = !providerKeyStatuses[provider];
+  }
+}
+
+async function refreshProviderKeyStatuses() {
+  const message = document.querySelector("#provider-key-message");
+  if (!supabase || !currentUser) {
+    message.textContent = "Hãy đăng nhập để quản lý API key.";
+    return;
+  }
+  const { data, error } = await supabase.functions.invoke("manage-ai-provider-key", {
+    body: { action: "status" }
+  });
+  if (error || !data || !Array.isArray(data.providers)) {
+    console.error("Không thể kiểm tra trạng thái API key:", error || "Invalid status response.");
+    message.textContent = "Chưa kiểm tra được. Hãy triển khai Edge Function và cấu hình secret mã hóa trong Supabase.";
+    return;
+  }
+  providerKeyStatuses = {
+    gemini: data.providers.some((item) => item.provider === "gemini"),
+    openai: data.providers.some((item) => item.provider === "openai")
+  };
+  renderProviderKeyStatuses();
+  message.textContent = "";
+}
+
+async function saveProviderKey(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const provider = document.querySelector("#provider-key-provider").value;
+  const input = document.querySelector("#provider-api-key");
+  const key = input.value.trim();
+  const button = document.querySelector("#save-provider-key");
+  const message = document.querySelector("#provider-key-message");
+  if (!currentUser || !providerLabels[provider] || !key) {
+    message.textContent = "Đăng nhập và nhập API key để tiếp tục.";
+    return;
+  }
+  button.disabled = true;
+  button.textContent = "Đang kiểm tra và mã hóa...";
+  message.textContent = "";
+  try {
+    const { data, error } = await supabase.functions.invoke("manage-ai-provider-key", {
+      body: { action: "save", provider, apiKey: key }
+    });
+    input.value = "";
+    if (error || data?.error) {
+      message.textContent = data?.error || "Không thể kết nối. Kiểm tra Edge Function và secret mã hóa trong Supabase.";
+      return;
+    }
+    form.reset();
+    providerKeyStatuses[provider] = true;
+    renderProviderKeyStatuses();
+    message.textContent = `${providerLabels[provider]} đã kết nối an toàn.`;
+  } catch {
+    input.value = "";
+    console.error("Không thể hoàn tất yêu cầu kết nối API key.");
+    message.textContent = "Kết nối thất bại. API key đã được xóa khỏi biểu mẫu; hãy kiểm tra cấu hình rồi thử lại.";
+  } finally {
+    button.disabled = false;
+    button.textContent = "Kiểm tra và kết nối";
+  }
+}
+
+async function removeProviderKey(provider) {
+  const message = document.querySelector("#provider-key-message");
+  const button = document.querySelector(`[data-remove-provider="${provider}"]`);
+  button.disabled = true;
+  message.textContent = "";
+  try {
+    const { data, error } = await supabase.functions.invoke("manage-ai-provider-key", {
+      body: { action: "remove", provider }
+    });
+    if (error || data?.error) {
+      message.textContent = data?.error || "Không thể xóa key. Hãy kiểm tra kết nối và thử lại.";
+      return;
+    }
+    providerKeyStatuses[provider] = false;
+    renderProviderKeyStatuses();
+    message.textContent = `Đã xóa key ${providerLabels[provider]}.`;
+  } catch (error) {
+    console.error("Không thể xóa API key:", error);
+    message.textContent = "Không xóa được API key. Hãy kiểm tra kết nối và thử lại.";
+  } finally {
+    button.disabled = !providerKeyStatuses[provider];
+  }
 }
 
 async function saveTask(event) {
@@ -867,6 +962,10 @@ function setupEvents() {
   document.querySelector("#new-task-button").addEventListener("click", openTaskDialog);
   document.querySelector("#connect-ai-button").addEventListener("click", openConnectionDialog);
   document.querySelector("#task-connect-ai").addEventListener("click", openConnectionDialog);
+  document.querySelector("#provider-key-form").addEventListener("submit", (event) => { void saveProviderKey(event); });
+  document.querySelectorAll("[data-remove-provider]").forEach((button) => {
+    button.addEventListener("click", () => { void removeProviderKey(button.dataset.removeProvider); });
+  });
   document.querySelector("#add-agent").addEventListener("click", () => showToast("12 profile Copilot Agent đã có trong .github/agents/."));
   document.querySelector("#task-form").addEventListener("submit", (event) => { void saveTask(event); });
   document.querySelector("#refresh-tasks").addEventListener("click", (event) => {

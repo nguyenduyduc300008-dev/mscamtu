@@ -172,7 +172,23 @@
       <form method="dialog" class="dialog-close-row"><button class="dialog-close" aria-label="Đóng phần kết nối API">×</button></form>
       <p class="eyebrow">NHÀ CUNG CẤP AI</p>
       <h2 id="connection-title">Kết nối API để giao việc</h2>
-      <p class="connection-intro">Chọn nhà cung cấp, tạo API key bằng tài khoản của bạn, rồi lưu key ở Supabase. Key không được nhập vào trang web hoặc lưu trên GitHub.</p>
+      <p class="connection-intro">Nhập key mới của bạn bên dưới. Key được gửi qua HTTPS tới Supabase, kiểm tra với nhà cung cấp rồi mã hóa ở backend; trang web không lưu hoặc hiển thị lại key đã kết nối.</p>
+      <p class="provider-key-warning" role="alert">Không dùng các key đã gửi trong cuộc trò chuyện. Thu hồi chúng tại nhà cung cấp và chỉ nhập key mới sau khi hoàn tất cài đặt backend.</p>
+      <form id="provider-key-form" class="provider-key-form">
+        <label for="provider-key-provider">Nhà cung cấp</label>
+        <select id="provider-key-provider">
+          <option value="gemini">Google Gemini</option>
+          <option value="openai">OpenAI / ChatGPT</option>
+        </select>
+        <label for="provider-api-key">API key mới</label>
+        <input id="provider-api-key" name="api-key" type="password" autocomplete="new-password" spellcheck="false" maxlength="4096" required placeholder="Dán API key mới vừa tạo">
+        <button class="button button-primary" id="save-provider-key" type="submit">Kiểm tra và kết nối</button>
+        <p id="provider-key-message" class="provider-key-message" role="status" aria-live="polite"></p>
+      </form>
+      <div class="provider-key-statuses" aria-label="Trạng thái kết nối API">
+        <section><div><strong>Google Gemini</strong><span id="gemini-api-status">Đang kiểm tra...</span></div><button type="button" data-remove-provider="gemini" disabled>Xóa key</button></section>
+        <section><div><strong>OpenAI / ChatGPT</strong><span id="openai-api-status">Đang kiểm tra...</span></div><button type="button" data-remove-provider="openai" disabled>Xóa key</button></section>
+      </div>
       <section class="provider-setup">
         <h3>Google Gemini · có thể dùng miễn phí</h3>
         <p>Google AI Studio có mức miễn phí giới hạn theo model, khu vực và quota hiện hành. Không gửi dữ liệu nhạy cảm khi dùng mức miễn phí.</p>
@@ -188,11 +204,11 @@
         <a class="provider-pricing-link" href="https://openai.com/api/pricing/" target="_blank" rel="noopener noreferrer">Xem giá API ↗</a>
       </section>
       <ol class="connection-steps">
-        <li>Mở Supabase Secrets, thêm secret của nhà cung cấp bạn chọn và dán API key vào đó.</li>
-        <li>Quay lại giao việc, chọn đúng nhà cung cấp. Không cần thêm key vào GitHub Pages.</li>
+        <li>Cần triển khai Edge Function quản lý key và đặt secret mã hóa máy chủ <code>AI_KEY_ENCRYPTION_SECRET</code> trong Supabase trước khi kết nối.</li>
+        <li>Chỉ nhập key mới sau khi đã thu hồi key cũ bị lộ. Không dán key vào GitHub hoặc chat.</li>
       </ol>
       <a class="button button-primary setup-link secrets-link" href="https://supabase.com/dashboard/project/afkhbcgookwwqvvvwxsx/functions/secrets" target="_blank" rel="noopener noreferrer">Mở Supabase Edge Function Secrets ↗</a>
-      <p class="dialog-disclaimer">Quota miễn phí có thể thay đổi hoặc hết. Mỗi API key do bạn tự quản lý; không gửi key qua chat hay cho người khác.</p>
+      <p class="dialog-disclaimer">Quota miễn phí có thể thay đổi hoặc hết. Không chia sẻ API key. OpenAI API tính phí riêng theo tài khoản và mức dùng.</p>
     </dialog>
 
     <dialog class="task-dialog result-dialog" id="result-dialog">
