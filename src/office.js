@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { createClient } from "@supabase/supabase-js";
+import officeLogoUrl from "../assets/bao-an-homes-logo.jpg";
 import "./office.css";
 
 const teams = [
@@ -44,9 +45,12 @@ let selectedAgentId = "coordinator";
 let selectedTeamId = "marketing";
 let taskQueue = [];
 let taskLoadError = "";
+let companyFinancialRecord;
+let financialLoadRequest = 0;
 let supabase;
 let currentUser;
 let providerKeyStatuses = { gemini: false, openai: false };
+let sharedProviderKeyStatuses = { gemini: false, openai: false };
 let taskRefreshTimer;
 let appEventsSetup = false;
 let renderer;
@@ -253,6 +257,109 @@ function renderMetrics() {
   document.querySelector("#metric-failed").textContent = String(count("failed"));
 }
 
+function getLocalDateValue(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatVnd(value) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0
+  }).format(value);
+}
+
+function renderCompanyFinancials() {
+  const hasRecord = Boolean(companyFinancialRecord);
+  document.querySelector("#financial-revenue-value").textContent = hasRecord
+    ? formatVnd(Number(companyFinancialRecord.revenue))
+    : "Chưa nhập";
+  document.querySelector("#financial-profit-value").textContent = hasRecord
+    ? formatVnd(Number(companyFinancialRecord.profit))
+    : "Chưa nhập";
+}
+
+async function refreshCompanyFinancials() {
+  if (!supabase || !currentUser) return;
+  const reportDate = document.querySelector("#financial-date").value;
+  const message = document.querySelector("#financial-message");
+  const requestId = ++financialLoadRequest;
+  document.querySelector("#financial-revenue").value = "";
+  document.querySelector("#financial-profit").value = "";
+  companyFinancialRecord = null;
+  renderCompanyFinancials();
+  message.textContent = "Đang tải số liệu...";
+  const { data, error } = await supabase
+    .from("company_daily_financials")
+    .select("report_date, revenue, profit, updated_at")
+    .eq("report_date", reportDate)
+    .maybeSingle();
+  if (requestId !== financialLoadRequest || reportDate !== document.querySelector("#financial-date").value) return;
+  if (error) {
+    console.error("Không thể tải số liệu tài chính:", error);
+    companyFinancialRecord = undefined;
+    renderCompanyFinancials();
+    message.textContent = "Không tải được số liệu. Kiểm tra migration và quyền truy cập Supabase.";
+    return;
+  }
+  companyFinancialRecord = data || null;
+  document.querySelector("#financial-revenue").value = data ? String(data.revenue) : "";
+  document.querySelector("#financial-profit").value = data ? String(data.profit) : "";
+  renderCompanyFinancials();
+  message.textContent = "";
+}
+
+async function saveCompanyFinancials(event) {
+  event.preventDefault();
+  if (!supabase || !currentUser) {
+    document.querySelector("#financial-message").textContent = "Hãy đăng nhập trước khi lưu số liệu.";
+    return;
+  }
+  const dateInput = document.querySelector("#financial-date");
+  const revenueInput = document.querySelector("#financial-revenue");
+  const profitInput = document.querySelector("#financial-profit");
+  const revenue = Number(revenueInput.value);
+  const profit = Number(profitInput.value);
+  const message = document.querySelector("#financial-message");
+  const button = document.querySelector("#financial-save");
+  if (!dateInput.value || !Number.isSafeInteger(revenue) || revenue < 0 || !Number.isSafeInteger(profit)) {
+    message.textContent = "Nhập ngày hợp lệ và số tiền nguyên VND; doanh thu không được âm.";
+    return;
+  }
+
+  button.disabled = true;
+  dateInput.disabled = true;
+  revenueInput.disabled = true;
+  profitInput.disabled = true;
+  message.textContent = "Đang lưu số liệu...";
+  const { data, error } = await supabase
+    .from("company_daily_financials")
+    .upsert({
+      report_date: dateInput.value,
+      revenue,
+      profit,
+      updated_by: currentUser.id,
+      updated_at: new Date().toISOString()
+    }, { onConflict: "report_date" })
+    .select("report_date, revenue, profit, updated_at")
+    .single();
+  button.disabled = false;
+  dateInput.disabled = false;
+  revenueInput.disabled = false;
+  profitInput.disabled = false;
+  if (error) {
+    console.error("Không thể lưu số liệu tài chính:", error);
+    message.textContent = "Không lưu được số liệu. Kiểm tra migration và quyền ghi trên Supabase.";
+    return;
+  }
+  companyFinancialRecord = data;
+  renderCompanyFinancials();
+  message.textContent = "Đã lưu số liệu tài chính dùng chung.";
+}
+
 function renderDashboard() {
   renderMetrics();
   renderTaskList();
@@ -329,8 +436,12 @@ function disposeScene() {
     scene.remove(child);
     child.traverse((object) => {
       if (object.geometry) object.geometry.dispose();
-      if (Array.isArray(object.material)) object.material.forEach((material) => material.dispose());
-      else if (object.material) object.material.dispose();
+      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      for (const material of materials) {
+        if (!material) continue;
+        material.map?.dispose();
+        material.dispose();
+      }
     });
   }
   avatarMeshes = [];
@@ -345,6 +456,34 @@ function makeBox(width, height, depth, tint, x, y, z, options = {}) {
   mesh.receiveShadow = true;
   scene.add(mesh);
   return mesh;
+}
+
+function addOfficeLogoSign() {
+  makeBox(4.8, 2.2, .14, "#a77a31", 0, 3.05, -6.36, { roughness: .48, metalness: .35 });
+  const aspectRatio = 1016 / 440;
+  const signWidth = 4.58;
+  const material = new THREE.MeshBasicMaterial({ color: "#ffffff" });
+  const sign = new THREE.Mesh(
+    new THREE.PlaneGeometry(signWidth, signWidth / aspectRatio),
+    material
+  );
+  sign.position.set(0, 3.05, -6.275);
+  scene.add(sign);
+
+  new THREE.TextureLoader().load(
+    officeLogoUrl,
+    (texture) => {
+      if (sign.parent !== scene) {
+        texture.dispose();
+        return;
+      }
+      texture.colorSpace = THREE.SRGBColorSpace;
+      material.map = texture;
+      material.needsUpdate = true;
+    },
+    undefined,
+    (error) => console.error("Không thể tải logo Bảo An Homes vào mô hình 3D:", error)
+  );
 }
 
 function makeAgent(agent) {
@@ -396,6 +535,7 @@ function drawOffice() {
   floor.position.y = -.1;
   floor.receiveShadow = true;
   scene.add(floor);
+  addOfficeLogoSign();
   makeBox(19.2, .15, .16, "#87b8e4", 0, .02, -6.5);
   makeBox(19.2, .15, .16, "#dce3eb", 0, .02, 6.5);
   makeBox(.16, .15, 13, "#dce3eb", -9.5, .02, 0);
@@ -565,7 +705,11 @@ function renderProviderKeyStatuses() {
   for (const provider of ["gemini", "openai"]) {
     const status = document.querySelector(`#${provider}-api-status`);
     const removeButton = document.querySelector(`[data-remove-provider="${provider}"]`);
-    status.textContent = providerKeyStatuses[provider] ? "Đã kết nối · key được mã hóa ở máy chủ" : "Chưa kết nối";
+    status.textContent = providerKeyStatuses[provider]
+      ? "Đã kết nối · key riêng được mã hóa ở máy chủ"
+      : sharedProviderKeyStatuses[provider]
+        ? "Đang dùng API key chung trên máy chủ"
+        : "Chưa kết nối";
     removeButton.disabled = !providerKeyStatuses[provider];
   }
 }
@@ -590,6 +734,10 @@ async function refreshProviderKeyStatuses() {
   providerKeyStatuses = {
     gemini: data.providers.some((item) => item.provider === "gemini"),
     openai: data.providers.some((item) => item.provider === "openai")
+  };
+  sharedProviderKeyStatuses = {
+    gemini: data.sharedProviders?.gemini === true,
+    openai: data.sharedProviders?.openai === true
   };
   renderProviderKeyStatuses();
   message.textContent = "";
@@ -908,7 +1056,7 @@ async function enterApp(user) {
     setupEvents();
     appEventsSetup = true;
   }
-  await refreshTasks();
+  await Promise.all([refreshTasks(), refreshCompanyFinancials()]);
   if (!taskRefreshTimer) taskRefreshTimer = setInterval(() => { void refreshTasks(); }, 5000);
 }
 
@@ -985,6 +1133,8 @@ function setupEvents() {
   });
   document.querySelector("#add-agent").addEventListener("click", () => showToast("12 profile Copilot Agent đã có trong .github/agents/."));
   document.querySelector("#task-form").addEventListener("submit", (event) => { void saveTask(event); });
+  document.querySelector("#financial-form").addEventListener("submit", (event) => { void saveCompanyFinancials(event); });
+  document.querySelector("#financial-date").addEventListener("change", () => { void refreshCompanyFinancials(); });
   document.querySelector("#refresh-tasks").addEventListener("click", (event) => {
     const button = event.currentTarget;
     button.disabled = true;
@@ -1031,6 +1181,7 @@ function setupEvents() {
 function init() {
   const now = new Date();
   document.querySelector("#today-label").textContent = new Intl.DateTimeFormat("vi-VN", { weekday: "short", day: "2-digit", month: "2-digit" }).format(now);
+  document.querySelector("#financial-date").value = getLocalDateValue(now);
   populateTaskAgentFilter();
   renderFloorTabs();
   renderDashboard();

@@ -22,7 +22,7 @@
 body { min-width: 360px; min-height: 100vh; margin: 0; font-size: 12px; }
 button, select, textarea { font: inherit; }
 button { color: inherit; -webkit-tap-highlight-color: transparent; }
-button:focus-visible, a:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid #347ce3; outline-offset: 3px; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid #347ce3; outline-offset: 3px; }
 
 .app-shell { display: grid; min-height: 100vh; grid-template-columns: 230px minmax(0, 1fr); }
 .sidebar { position: sticky; top: 0; display: flex; height: 100vh; min-height: 580px; flex-direction: column; padding: 22px 14px 14px; border-right: 1px solid var(--line); background: #fff; }
@@ -147,6 +147,20 @@ h1 span { color: #377cdb; }
 .metric-icon.blue { color: #4685e0; }
 .metric-icon.green { color: #28a879; background: #ecf8f2; }
 .metric-icon.purple { color: #8673d5; background: #f2efff; }
+.company-financials { margin-top: 9px; }
+.financial-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.financial-metrics article { min-width: 0; padding: 10px; border: 1px solid #edf0f4; border-radius: 6px; background: #fbfcfe; }
+.financial-metrics span, .financial-metrics strong { display: block; }
+.financial-metrics span { color: #8c98a6; font-size: 8px; }
+.financial-metrics strong { margin-top: 5px; color: #33455b; font-size: 16px; overflow-wrap: anywhere; }
+.financial-metrics article:nth-child(2) strong { color: #21865e; }
+.financial-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 8px; align-items: end; margin-top: 10px; }
+.financial-form label { display: grid; gap: 4px; min-width: 0; color: #8b97a5; font-size: 8px; }
+.financial-form input { width: 100%; min-width: 0; height: 32px; padding: 0 8px; border: 1px solid #e1e6ed; border-radius: 5px; color: #53647a; background: #fff; font: inherit; font-size: 10px; }
+.financial-form .button { min-height: 32px; padding: 0 12px; font-size: 9px; }
+.financial-message { min-height: 12px; margin: 7px 0 0; color: #69798d; font-size: 8px; }
+.financial-message:empty { display: none; }
+.financial-save:disabled, .financial-form button:disabled { cursor: wait; opacity: .6; }
 .metric-progress { position: absolute; right: 12px; bottom: 15px; left: 12px; height: 3px; border-radius: 4px; background: #eff2f6; }
 .metric-progress i { display: block; width: 48%; height: 100%; border-radius: inherit; background: #508de6; }
 .sparkline { position: absolute; right: 11px; bottom: 14px; width: 46px; height: 13px; border-bottom: 1px solid #dde7f4; background: linear-gradient(160deg, transparent 37%, #76a3e6 39%, #76a3e6 42%, transparent 44%); }
@@ -359,6 +373,8 @@ h1 span { color: #377cdb; }
   .auth-card h1 { font-size: 26px; }
   .account-email { max-width: 130px; }
   .task-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .financial-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .financial-form button { grid-column: 1 / -1; }
 }
 @media (max-width: 820px) {
   .task-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }

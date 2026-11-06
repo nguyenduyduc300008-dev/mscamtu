@@ -12,7 +12,7 @@ Trang văn phòng là frontend tĩnh trên GitHub Pages. Đăng nhập, database
    - Redirect URL local: `http://127.0.0.1:5173/office.html`
 5. Để bật đăng nhập Google:
    - Trong Google Cloud Console, tạo OAuth client loại **Web application** và cấu hình màn hình đồng ý OAuth.
-   - Thêm URI callback sau vào **Authorized redirect URIs** của Google: `https://afkhbcgookwwqvvvwxsx.supabase.co/auth/v1/callback`
+   - Thêm URI callback `https://<project-ref>.supabase.co/auth/v1/callback` vào **Authorized redirect URIs** của Google, thay `<project-ref>` bằng project ref của đúng Supabase project.
    - Trong **Supabase → Authentication → Sign In / Providers → Google**, bật provider và nhập Google **Client ID** cùng **Client Secret**. Chỉ nhập Client Secret trực tiếp trong Supabase, không đưa vào frontend, repository hoặc chat.
    - Giữ tắt đăng ký công khai; đăng nhập Google bằng chính địa chỉ email của tài khoản được mời trong Supabase. Nếu ứng dụng Google đang ở chế độ kiểm thử, thêm tài khoản đăng nhập vào danh sách test users trong Google Cloud Console.
 
@@ -32,6 +32,7 @@ Trong **Supabase → Edge Functions → Secrets**, đặt các secrets sau. Lấ
 |---|---|
 | `SUPABASE_URL` | URL project Supabase |
 | `SUPABASE_ANON_KEY` | anon/publishable key của project |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key của project; chỉ lưu trong Edge Function Secrets, tuyệt đối không đưa vào frontend hoặc GitHub Pages variables |
 | `AI_KEY_ENCRYPTION_SECRET` | Chuỗi bí mật ngẫu nhiên tối thiểu 32 ký tự, chỉ lưu trong Supabase Edge Function Secrets; dùng để mã hóa API key riêng của từng tài khoản |
 | `ALLOWED_ORIGINS` | `https://nguyenduyduc300008-dev.github.io,http://127.0.0.1:5173,http://localhost:5173` |
 
@@ -44,11 +45,24 @@ npx supabase functions deploy manage-ai-provider-key
 npx supabase functions deploy run-agent
 ```
 
+### Dùng một Gemini API key chung cho văn phòng
+
+GitHub Pages không thể tự tạo hoặc tự lấy API key từ Google. Quản trị viên cần tự tạo key trong [Google AI Studio](https://aistudio.google.com/api-keys), sau đó lưu key ở backend:
+
+1. Mở đúng Supabase project mà website dùng → **Edge Functions → Secrets**.
+2. Thêm secret tên `GEMINI_API_KEY`, giá trị là key vừa tạo. Không thêm key này vào GitHub, mã nguồn, `.env`, hay `VITE_*`.
+3. Đảm bảo GitHub Actions Variables `VITE_SUPABASE_URL` và `VITE_SUPABASE_ANON_KEY` trỏ tới chính project đó; `VITE_SUPABASE_URL` phải khớp `SUPABASE_URL` của Edge Functions.
+4. Deploy lại hai function bằng lệnh phía trên. Đăng nhập website, mở **Kết nối API AI**; Gemini sẽ hiện **Đang dùng API key chung trên máy chủ**. Chọn **Google Gemini** khi giao nhiệm vụ.
+
+Key chung được dùng cho mọi tài khoản trên văn phòng và tiêu thụ quota của tài khoản Google sở hữu key. Nếu có API key riêng đã kết nối, key riêng được ưu tiên; xóa key riêng sẽ quay lại dùng key chung. Cần tạo tài khoản quản trị và đăng nhập Supabase như hướng dẫn bên trên.
+
 Sau khi triển khai, đăng nhập trang Văn phòng AI, chọn **Kết nối API AI**, chọn nhà cung cấp, nhập API key mới và bấm **Kiểm tra và kết nối**. Backend sẽ kiểm tra key với nhà cung cấp rồi mã hóa bằng AES-GCM trước khi lưu. Khóa mã hóa không được gửi xuống trình duyệt; bảng key không cho phép người dùng đọc trực tiếp. Có thể xóa key đã lưu ngay trong giao diện. Không nhập API key vào trang trước khi migration, Edge Function và secret mã hóa đã được cấu hình.
 
 Gemini API có quota miễn phí giới hạn tùy model, khu vực và điều khoản Google; OpenAI API tính phí riêng theo sử dụng và không mặc nhiên nằm trong gói ChatGPT. Không dán API key vào GitHub hoặc chat. Nếu key từng bị chia sẻ/lộ, thu hồi key đó tại nhà cung cấp và tạo key mới.
 
 Trang **Lịch sử giao việc** có bộ lọc ngày, AI Agent và trạng thái. **Báo cáo tuần** tổng hợp tuần đã hoàn thành gần nhất theo giờ máy, chuyển sang kỳ mới vào Thứ Hai lúc 09:00 và hiển thị trên trang. Khi trang đang mở, dữ liệu làm mới mỗi 5 giây; mở lại trang để xem kỳ mới nếu máy đã đóng đúng giờ báo cáo. Không gửi email/thông báo khi trang đóng. Lịch sử tải 100 nhiệm vụ mới nhất.
+
+Phần **Tài chính công ty** trên Tổng quan lưu doanh thu và lợi nhuận theo ngày bằng VND. Số liệu nhập thủ công, dùng chung cho tài khoản đã đăng nhập và không tự tính từ đơn hàng. Để bật tính năng, áp dụng migration `supabase/migrations/20261106000200_create_company_daily_financials.sql` bằng `npx supabase db push`.
 
 Bảng nhiệm vụ được tạo từ migration `supabase/migrations/20261105000100_create_ai_tasks.sql`, bật Row Level Security và chỉ cho tài khoản đã đăng nhập đọc/sửa nhiệm vụ của chính mình. Hai Edge Function đặt `verify_jwt = false` vì tùy chọn kiểm tra JWT legacy ở gateway không hỗ trợ mọi signing key hiện hành. Thay vào đó, mỗi function tự xác minh phiên bằng `auth.getUser()` trước khi xử lý; không bỏ bước kiểm tra này. API key riêng nằm trong bảng chỉ Edge Function dùng service role truy cập được và không đọc được trực tiếp qua Data API. API key đã mã hóa được dùng ở backend cho nhiệm vụ tương ứng; agent không thực thi lệnh, đăng bài hay tác động tài khoản bên ngoài.
 

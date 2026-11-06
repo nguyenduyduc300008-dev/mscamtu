@@ -129,6 +129,25 @@
             <article class="metric-card"><div class="metric-label">Lỗi cần xem lại <span>!</span></div><strong id="metric-failed">0</strong><small>Chưa tính nội dung thất bại</small></article>
           </section>
 
+          <section class="report-card company-financials" aria-labelledby="financials-title">
+            <div class="report-heading">
+              <div><strong id="financials-title">Tài chính công ty</strong><small>Nhập số liệu thực tế theo ngày · VND</small></div>
+              <span class="weekly-report-schedule">Dữ liệu dùng chung</span>
+            </div>
+            <div class="financial-metrics" aria-live="polite">
+              <article><span>Doanh thu</span><strong id="financial-revenue-value">Chưa nhập</strong></article>
+              <article><span>Lợi nhuận</span><strong id="financial-profit-value">Chưa nhập</strong></article>
+            </div>
+            <form id="financial-form" class="financial-form">
+              <label>Ngày báo cáo<input id="financial-date" type="date" required></label>
+              <label>Doanh thu (VND)<input id="financial-revenue" type="number" min="0" step="1" inputmode="numeric" required placeholder="Ví dụ: 5000000"></label>
+              <label>Lợi nhuận (VND)<input id="financial-profit" type="number" step="1" inputmode="numeric" required placeholder="Có thể nhập số âm"></label>
+              <button class="button button-primary" id="financial-save" type="submit">Lưu số liệu</button>
+            </form>
+            <p class="financial-message" id="financial-message" role="status" aria-live="polite"></p>
+            <p class="weekly-report-footnote">Số liệu do người dùng nhập, không tự tính từ đơn hàng. Tài khoản đã đăng nhập có thể xem và cập nhật.</p>
+          </section>
+
           <section class="reports-grid" aria-label="Báo cáo và công việc">
             <article class="report-card task-board">
               <div class="report-heading"><div><strong>Lịch sử giao việc</strong><small id="task-count-label">Đang tải nhiệm vụ...</small></div><button id="refresh-tasks" type="button">Làm mới</button></div>
@@ -172,7 +191,7 @@
       <form method="dialog" class="dialog-close-row"><button class="dialog-close" aria-label="Đóng phần kết nối API">×</button></form>
       <p class="eyebrow">NHÀ CUNG CẤP AI</p>
       <h2 id="connection-title">Kết nối API để giao việc</h2>
-      <p class="connection-intro">Nhập key mới của bạn bên dưới. Key được gửi qua HTTPS tới Supabase, kiểm tra với nhà cung cấp rồi mã hóa ở backend; trang web không lưu hoặc hiển thị lại key đã kết nối.</p>
+      <p class="connection-intro">Quản trị viên có thể cấu hình một API key dùng chung trong Supabase để mọi tài khoản được phép dùng. Hoặc nhập key riêng bên dưới; key riêng được gửi qua HTTPS, mã hóa ở backend và không được trang web lưu hoặc hiển thị lại.</p>
       <p class="provider-key-warning" role="alert">Không dùng các key đã gửi trong cuộc trò chuyện. Thu hồi chúng tại nhà cung cấp và chỉ nhập key mới sau khi hoàn tất cài đặt backend.</p>
       <form id="provider-key-form" class="provider-key-form">
         <label for="provider-key-provider">Nhà cung cấp</label>

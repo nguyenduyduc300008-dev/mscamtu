@@ -99,7 +99,13 @@ Deno.serve(async (request: Request) => {
       console.error("Could not read AI provider key status:", error);
       return jsonResponse({ error: "Could not read saved provider settings." }, 500, origin);
     }
-    return jsonResponse({ providers: data }, 200, origin);
+    return jsonResponse({
+      providers: data,
+      sharedProviders: {
+        gemini: Boolean(Deno.env.get("GEMINI_API_KEY")),
+        openai: Boolean(Deno.env.get("OPENAI_API_KEY"))
+      }
+    }, 200, origin);
   }
 
   if (body.action !== "save" && body.action !== "remove") {
