@@ -60,6 +60,9 @@ let raycaster;
 let pointer;
 let avatarMeshes = [];
 let autoRotate = false;
+let animationFrameId = null;
+let lastAnimationTimestamp = 0;
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 let rotation = 0.6;
 let zoom = 1;
 let dragging = false;
@@ -490,9 +493,16 @@ function makeAgent(agent) {
   const group = new THREE.Group();
   group.position.set(agent.pos[0], 0, agent.pos[1]);
   group.userData.agentId = agent.id;
+  group.userData.homeX = agent.pos[0];
+  group.userData.homeZ = agent.pos[1];
+  group.userData.pathZ = Math.sign(agent.pos[1]) * 1.95;
+  group.userData.phaseOffset = avatarMeshes.length * 1.7;
+  group.userData.legPivots = [];
+  group.userData.armPivots = [];
   const bodyMat = new THREE.MeshStandardMaterial({ color: agent.color, roughness: .76 });
   const skinMat = new THREE.MeshStandardMaterial({ color: "#f1c8a9", roughness: .9 });
-  const darkMat = new THREE.MeshStandardMaterial({ color: "#465568", roughness: .86 });
+  const darkMat = new THREE.MeshStandardMaterial({ color: "#514337", roughness: .86 });
+  const trouserMat = new THREE.MeshStandardMaterial({ color: "#554d43", roughness: .9 });
   const body = new THREE.Mesh(new THREE.CapsuleGeometry(.22, .34, 3, 7), bodyMat);
   body.position.set(0, .54, 0);
   body.castShadow = true;
@@ -509,6 +519,29 @@ function makeAgent(agent) {
   status.name = "agent-status-indicator";
   status.position.set(.22, 1.22, 0);
   group.add(status);
+  for (const side of [-1, 1]) {
+    const legPivot = new THREE.Group();
+    legPivot.position.set(side * .105, .39, 0);
+    const leg = new THREE.Mesh(new THREE.CapsuleGeometry(.075, .2, 2, 6), trouserMat);
+    leg.position.y = -.16;
+    leg.castShadow = true;
+    legPivot.add(leg);
+    const shoe = new THREE.Mesh(new THREE.BoxGeometry(.13, .065, .19), darkMat);
+    shoe.position.set(0, -.3, .035);
+    shoe.castShadow = true;
+    legPivot.add(shoe);
+    group.add(legPivot);
+    group.userData.legPivots.push(legPivot);
+
+    const armPivot = new THREE.Group();
+    armPivot.position.set(side * .21, .74, 0);
+    const arm = new THREE.Mesh(new THREE.CapsuleGeometry(.065, .2, 2, 6), bodyMat);
+    arm.position.y = -.15;
+    arm.castShadow = true;
+    armPivot.add(arm);
+    group.add(armPivot);
+    group.userData.armPivots.push(armPivot);
+  }
   group.traverse((object) => {
     if (object.isMesh) object.userData.agentId = agent.id;
   });
@@ -523,6 +556,7 @@ function updateOfficeAgentIndicators() {
     if (indicator) indicator.material.color.set(stateColors[getAgentState(avatar.userData.agentId)] || "#d65b56");
   }
   renderer.render(scene, camera);
+  startSceneAnimation();
 }
 
 function drawOffice() {
@@ -530,41 +564,46 @@ function drawOffice() {
   disposeScene();
   const team = teams.find((item) => item.id === selectedTeamId);
   const teamAgents = agents.filter((agent) => agent.team === team.id);
-  const floorMat = new THREE.MeshStandardMaterial({ color: "#f2f5f8", roughness: 1 });
+  const floorMat = new THREE.MeshStandardMaterial({ color: "#e9e0d2", roughness: 1 });
   const floor = new THREE.Mesh(new THREE.BoxGeometry(19, .16, 13), floorMat);
   floor.position.y = -.1;
   floor.receiveShadow = true;
   scene.add(floor);
   addOfficeLogoSign();
-  makeBox(19.2, .15, .16, "#87b8e4", 0, .02, -6.5);
-  makeBox(19.2, .15, .16, "#dce3eb", 0, .02, 6.5);
-  makeBox(.16, .15, 13, "#dce3eb", -9.5, .02, 0);
-  makeBox(.16, .15, 13, "#dce3eb", 9.5, .02, 0);
+  makeBox(19.2, .15, .16, "#b18a55", 0, .02, -6.5);
+  makeBox(19.2, .15, .16, "#d2c2aa", 0, .02, 6.5);
+  makeBox(.16, .15, 13, "#d2c2aa", -9.5, .02, 0);
+  makeBox(.16, .15, 13, "#d2c2aa", 9.5, .02, 0);
 
   for (let index = 0; index < 3; index += 1) {
     const x = -6 + index * 6;
-    makeBox(.08, .68, 3.2, "#d7dce2", x + 3, .32, 0);
-    makeBox(5.1, .7, .07, "#e0e4e9", x, .35, 1.45);
+    makeBox(.08, .68, 3.2, "#cdbda7", x + 3, .32, 0);
+    makeBox(5.1, .7, .07, "#d8cbb8", x, .35, 1.45);
   }
+
+  const walkwayMat = new THREE.MeshStandardMaterial({ color: "#dfd1bd", roughness: 1 });
+  const walkway = new THREE.Mesh(new THREE.BoxGeometry(18.9, .025, 3.45), walkwayMat);
+  walkway.position.set(0, .005, 0);
+  scene.add(walkway);
 
   teamAgents.forEach((agent, index) => {
     const [x, z] = agent.pos;
-    const deskColor = index % 2 ? "#f5f1eb" : "#ebe7e0";
+    const deskColor = index % 2 ? "#c9ab7f" : "#b99464";
     makeBox(1.75, .12, .95, deskColor, x, .86, z - .48);
-    makeBox(.08, .82, .08, "#c8ced5", x - .72, .4, z - .17);
-    makeBox(.08, .82, .08, "#c8ced5", x + .72, .4, z - .17);
-    makeBox(.12, .62, .08, "#596d82", x, 1.22, z - .81);
-    makeBox(.75, .48, .035, "#dcecff", x, 1.22, z - .76, { emissive: "#c5e0ff", emissiveIntensity: .16 });
-    makeBox(.85, .09, .09, "#64768a", x, .54, z + .55);
+    makeBox(.08, .82, .08, "#a9865f", x - .72, .4, z - .17);
+    makeBox(.08, .82, .08, "#a9865f", x + .72, .4, z - .17);
+    makeBox(.12, .62, .08, "#725a40", x, 1.22, z - .81);
+    makeBox(.75, .48, .035, "#ede4d6", x, 1.22, z - .76, { emissive: "#d8c7a8", emissiveIntensity: .16 });
+    makeBox(.85, .09, .09, "#8c7458", x, .54, z + .55);
     makeAgent(agent);
   });
 
-  const rug = new THREE.Mesh(new THREE.BoxGeometry(4.5, .025, 1.8), new THREE.MeshStandardMaterial({ color: "#e8f0fa", roughness: 1 }));
+  const rug = new THREE.Mesh(new THREE.BoxGeometry(4.5, .025, 1.8), new THREE.MeshStandardMaterial({ color: "#d9c9ae", roughness: 1 }));
   rug.position.set(0, .005, 4.65);
   scene.add(rug);
-  const plantMat = new THREE.MeshStandardMaterial({ color: "#62a47c", roughness: .95 });
+  const plantMat = new THREE.MeshStandardMaterial({ color: "#64805c", roughness: .95 });
   for (const [x, z] of [[-8.3, -5.2], [8.3, 5.2], [-8.3, 5.2], [8.3, -5.2]]) {
-    const pot = new THREE.Mesh(new THREE.CylinderGeometry(.22, .29, .38, 8), new THREE.MeshStandardMaterial({ color: "#d5b9a2", roughness: .9 }));
+    const pot = new THREE.Mesh(new THREE.CylinderGeometry(.22, .29, .38, 8), new THREE.MeshStandardMaterial({ color: "#bd9671", roughness: .9 }));
     pot.position.set(x, .18, z);
     scene.add(pot);
     const leaves = new THREE.Mesh(new THREE.IcosahedronGeometry(.42, 1), plantMat);
@@ -574,6 +613,7 @@ function drawOffice() {
     scene.add(leaves);
   }
   renderer.render(scene, camera);
+  startSceneAnimation();
 }
 
 function updateCamera() {
@@ -591,10 +631,10 @@ function initScene() {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.setClearColor(0xf8fafc, 0);
+    renderer.setClearColor(0xf4eee3, 0);
     scene = new THREE.Scene();
-    scene.add(new THREE.HemisphereLight("#ffffff", "#dce5ef", 2.1));
-    const sun = new THREE.DirectionalLight("#ffffff", 2.2);
+    scene.add(new THREE.HemisphereLight("#fffaf0", "#d5c4a8", 2.1));
+    const sun = new THREE.DirectionalLight("#fff1d2", 2.2);
     sun.position.set(-7, 18, 12);
     sun.castShadow = true;
     sun.shadow.mapSize.set(1024, 1024);
@@ -610,7 +650,8 @@ function initScene() {
     canvas.addEventListener("pointerup", onPointerUp);
     canvas.addEventListener("pointercancel", onPointerCancel);
     canvas.addEventListener("wheel", onWheel, { passive: false });
-    requestAnimationFrame(animate);
+    prefersReducedMotion.addEventListener("change", startSceneAnimation);
+    startSceneAnimation();
   } catch (error) {
     console.error("Không thể khởi tạo văn phòng 3D:", error);
     sceneError.hidden = false;
@@ -631,12 +672,77 @@ function resizeScene() {
   updateCamera();
 }
 
-function animate() {
+function hasMovingAgents() {
+  return avatarMeshes.some((avatar) => {
+    const state = getAgentState(avatar.userData.agentId);
+    return state === "working" || state === "waiting";
+  });
+}
+
+function hasReturningAgents() {
+  return avatarMeshes.some((avatar) => {
+    const state = getAgentState(avatar.userData.agentId);
+    const isWalking = !prefersReducedMotion.matches && (state === "working" || state === "waiting");
+    return !isWalking && (
+      Math.abs(avatar.position.x - avatar.userData.homeX) > .01
+      || Math.abs(avatar.position.z - avatar.userData.homeZ) > .01
+    );
+  });
+}
+
+function startSceneAnimation() {
+  const shouldAnimate = autoRotate
+    || (!prefersReducedMotion.matches && hasMovingAgents())
+    || hasReturningAgents();
+  if (shouldAnimate && animationFrameId === null) {
+    animationFrameId = requestAnimationFrame(animate);
+  }
+}
+
+function animate(timestamp) {
+  animationFrameId = null;
+  const delta = lastAnimationTimestamp ? Math.min((timestamp - lastAnimationTimestamp) / 1000, .05) : 0;
+  lastAnimationTimestamp = timestamp;
+  let avatarMoved = false;
+  for (const avatar of avatarMeshes) {
+    const state = getAgentState(avatar.userData.agentId);
+    const isWalking = !prefersReducedMotion.matches && (state === "working" || state === "waiting");
+    if (!isWalking) {
+      const previousX = avatar.position.x;
+      const previousZ = avatar.position.z;
+      avatar.position.x = THREE.MathUtils.damp(avatar.position.x, avatar.userData.homeX, 2.6, delta);
+      avatar.position.z = THREE.MathUtils.damp(avatar.position.z, avatar.userData.homeZ, 2.6, delta);
+      avatar.position.y = 0;
+      avatar.userData.legPivots.forEach((leg) => { leg.rotation.x = 0; });
+      avatar.userData.armPivots.forEach((arm) => { arm.rotation.x = 0; });
+      avatar.rotation.y = 0;
+      avatarMoved ||= Math.abs(previousX - avatar.position.x) > .001
+        || Math.abs(previousZ - avatar.position.z) > .001;
+      continue;
+    }
+
+    const phase = timestamp / 1000 * 2.8 + avatar.userData.phaseOffset;
+    const direction = Math.cos(phase);
+    avatar.position.x = avatar.userData.homeX + Math.sin(phase) * 1.05;
+    avatar.position.z = THREE.MathUtils.damp(avatar.position.z, avatar.userData.pathZ, 2.6, delta);
+    avatar.position.y = Math.abs(Math.sin(phase * 2)) * .035;
+    avatar.rotation.y = direction >= 0 ? Math.PI / 2 : -Math.PI / 2;
+    avatar.userData.legPivots.forEach((leg, index) => {
+      leg.rotation.x = Math.sin(phase * 2 + index * Math.PI) * .52;
+    });
+    avatar.userData.armPivots.forEach((arm, index) => {
+      arm.rotation.x = Math.sin(phase * 2 + index * Math.PI + Math.PI) * .34;
+    });
+    avatarMoved = true;
+  }
+
   if (autoRotate && !dragging) {
     rotation += .0018;
     updateCamera();
+  } else if (avatarMoved) {
+    renderer.render(scene, camera);
   }
-  requestAnimationFrame(animate);
+  startSceneAnimation();
 }
 
 function onPointerDown(event) {
@@ -1165,6 +1271,7 @@ function setupEvents() {
     autoRotate = !autoRotate;
     event.currentTarget.setAttribute("aria-pressed", String(autoRotate));
     event.currentTarget.querySelector("span").textContent = autoRotate ? "Dừng xoay" : "Tự xoay";
+    startSceneAnimation();
   });
   document.querySelector("#zoom-in").addEventListener("click", () => { zoom = Math.min(1.5, zoom + .1); resizeScene(); });
   document.querySelector("#zoom-out").addEventListener("click", () => { zoom = Math.max(.72, zoom - .1); resizeScene(); });

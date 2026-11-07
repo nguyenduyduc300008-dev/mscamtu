@@ -3,19 +3,18 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f5f7fb">
-    <meta name="description" content="Mô hình văn phòng AI 3D, quản lý các phòng ban và công việc của AI Agent.">
-    <title>Văn phòng AI 3D — AI Studio</title>
+    <meta name="theme-color" content="#f4eee3">
+    <meta name="description" content="Văn phòng số Bảo An Homes — không gian 3D theo dõi đội ngũ và công việc AI Agent.">
+    <title>Văn phòng Bảo An Homes — Không gian AI</title>
   </head>
   <body>
     <section class="auth-screen" id="auth-screen" aria-labelledby="auth-title">
       <form class="auth-card" id="login-form">
-        <a class="brand auth-brand" href="./office.html" aria-label="AI Studio">
-          <span class="brand-mark">A</span>
-          <span><strong>AI STUDIO</strong><small>VĂN PHÒNG SỐ</small></span>
+        <a class="brand auth-brand" href="./office.html" aria-label="Bảo An Homes, đăng nhập văn phòng AI">
+          <span class="brand-logo-frame"><img class="brand-logo" src="./assets/bao-an-homes-logo.jpg" alt="Bảo An Homes"></span>
         </a>
         <p class="eyebrow"><span class="live-dot"></span> KHÔNG GIAN LÀM VIỆC RIÊNG</p>
-        <h1 id="auth-title">Đăng nhập<br><span>văn phòng AI</span></h1>
+        <h1 id="auth-title">Đăng nhập<br><span>Bảo An Homes</span></h1>
         <p class="auth-copy">Đăng nhập để quản lý nhiệm vụ và kết quả của các AI Agent.</p>
         <label>Email quản trị<input name="email" type="email" autocomplete="username" required placeholder="email@congty.com"></label>
         <label>Mật khẩu<input name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="Nhập mật khẩu"></label>
@@ -31,9 +30,8 @@
       </form>
 
       <form class="auth-card" id="password-recovery-form" hidden>
-        <a class="brand auth-brand" href="./office.html" aria-label="AI Studio">
-          <span class="brand-mark">A</span>
-          <span><strong>AI STUDIO</strong><small>VĂN PHÒNG SỐ</small></span>
+        <a class="brand auth-brand" href="./office.html" aria-label="Bảo An Homes, đăng nhập văn phòng AI">
+          <span class="brand-logo-frame"><img class="brand-logo" src="./assets/bao-an-homes-logo.jpg" alt="Bảo An Homes"></span>
         </a>
         <p class="eyebrow"><span class="live-dot"></span> BẢO MẬT TÀI KHOẢN</p>
         <h1>Đặt mật khẩu <span>mới</span></h1>
@@ -48,9 +46,8 @@
 
     <div class="app-shell" id="app-shell" hidden>
       <aside class="sidebar">
-        <a class="brand" href="./office.html" aria-label="AI Studio, trang tổng quan">
-          <span class="brand-mark">A</span>
-          <span><strong>AI STUDIO</strong><small>VĂN PHÒNG SỐ</small></span>
+        <a class="brand" href="./office.html" aria-label="Bảo An Homes, trang tổng quan văn phòng">
+          <span class="brand-logo-frame"><img class="brand-logo" src="./assets/bao-an-homes-logo.jpg" alt="Bảo An Homes"></span>
         </a>
 
         <nav class="primary-nav" aria-label="Điều hướng">
@@ -70,7 +67,7 @@
 
       <main class="main-content">
         <header class="topbar">
-          <div class="breadcrumbs"><span>Không gian làm việc</span><b>/</b><strong>Văn phòng AI 3D</strong></div>
+          <div class="breadcrumbs"><span>Bảo An Homes</span><b>/</b><strong>Văn phòng AI 3D</strong></div>
           <div class="topbar-actions">
             <span class="today-label" id="today-label"></span>
             <span class="account-email" id="account-email"></span>
@@ -81,9 +78,9 @@
         <div class="page-content">
           <section class="page-heading">
             <div>
-              <p class="eyebrow"><span class="live-dot"></span> MÔ HÌNH DOANH NGHIỆP</p>
-              <h1>Văn phòng <span>AI 3D</span></h1>
-              <p class="page-description">Quan sát các phòng ban, theo dõi công việc và giao nhiệm vụ cho từng AI Agent.</p>
+              <p class="eyebrow"><span class="live-dot"></span> KHÔNG GIAN SỐ · BẢO AN HOMES</p>
+              <h1>Văn phòng <span>Bảo An Homes</span></h1>
+              <p class="page-description">Theo dõi đội ngũ AI trong văn phòng 3D, quản lý công việc và kết quả tại một nơi.</p>
             </div>
             <div class="heading-actions">
               <button class="button button-secondary" id="rotate-button" type="button" aria-pressed="false">⟳ <span>Tự xoay</span></button>
@@ -95,7 +92,7 @@
           <section class="workspace-grid" aria-label="Văn phòng ảo">
             <div class="scene-card">
               <div class="scene-toolbar">
-                <div class="scene-status"><span class="live-dot"></span><strong>Sơ đồ văn phòng</strong><span>•</span><span id="scene-floor-label">Tầng 1</span></div>
+                <div class="scene-status"><span class="live-dot"></span><strong>Văn phòng Bảo An Homes</strong><span>•</span><span id="scene-floor-label">Tầng 1</span></div>
                 <div class="scene-tools"><button id="zoom-out" type="button" aria-label="Thu nhỏ">−</button><button id="zoom-in" type="button" aria-label="Phóng to">＋</button><button id="reset-view" type="button" aria-label="Đặt lại góc nhìn">⌖</button></div>
               </div>
               <div class="scene-viewport" id="scene-viewport">
@@ -168,7 +165,7 @@
               <p class="weekly-report-footnote">Báo cáo chỉ hiển thị trong trang này, không gửi email hoặc thông báo khi trang đóng.</p>
             </article>
           </section>
-          <footer class="page-footer">AI Studio · Bản mô phỏng giao diện văn phòng AI 3D</footer>
+          <footer class="page-footer">Bảo An Homes · Không gian làm việc AI</footer>
         </div>
       </main>
     </div>
